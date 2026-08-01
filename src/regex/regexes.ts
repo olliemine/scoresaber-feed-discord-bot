@@ -1,0 +1,1 @@
+export const averageTop1CountRateRegex = /{averageTop1CountRate_(server|country)_(\d|rounded|ratio)(_ranked)?}/g

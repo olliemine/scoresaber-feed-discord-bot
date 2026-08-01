@@ -1,0 +1,183 @@
+{
+	"$schema": "./schema.json",
+	"botAuthor": "BS Local Bot",
+	"server-id": "YOUR_SERVER_ID",
+	"masters-user-ids": ["YOUR_DISCORD_USER_ID"],
+	"main-countries": ["XX"],
+	"bot-channels": [],
+	"language": "en",
+	"admin-roles": [],
+	"activity": {
+		"name": "Beat Saber",
+		"type": 3
+	},
+	"database": {
+		"user-login": {
+			"do-discord-nicknames": false,
+			"discord-nicknames": {
+				"MainCountryUser": "{discordName}",
+				"NonMainCountryUser": "{discordName}",
+				"InactiveUser": "{discordName}",
+				"BannedUser": "{discordName}",
+				"Visitor": "{discordName}"
+			},
+			"give-roles": {
+				"MainCountryUser": [],
+				"NonMainCountryUser": [],
+				"InactiveUser": [],
+				"BannedUser": [],
+				"Visitor": []
+			},
+			"default-values": {
+				"doSnipePing": false
+			},
+			"disable-warnings": false,
+			"IsVisitorWithoutDeclaring": false,
+			"VerificationChannel": {
+				"enabled": false,
+				"deleteMessages": false,
+				"haveInstructionMessage": false
+			}
+		},
+		"players": {
+			"Unknowns": {
+				"SaveUnknowns": true
+			},
+			"update": {
+				"enable-updates-for-NonMainCountryUsers": false,
+				"ppLimit": 1000
+			},
+			"roles": {
+				"GiveRankRolestoInactiveUsers": false,
+				"list": []
+			},
+			"feed": {
+				"doPingsPlayer": false,
+				"doPingsSniped": false,
+				"feeds": [{
+					"Channel": "YOUR_PLAYER_FEED_CHANNEL_ID",
+					"Feeds": ["GlobalRankMainCountries"]
+				}],
+				"feedMessages": {
+					"GlobalRank": {
+						"type": "embed",
+						"embedTitle": "{Player_scoresaber_name} overtook {Sniped_scoresaber_name}",
+						"embedDescription": "Now **#{Player_globalRank}** global[\n\nAlso passed **{SnipedUsersExceptFirst}**]SnipedUsersExceptFirst",
+						"buttons": ["scoresaberPlayer"],
+						"embedThumbnail": "PlayerProfilePicture",
+						"embedColor": {
+							"value": "#ed372b",
+							"type": "color"
+						}
+					}
+				}
+			}
+		},
+		"maps": {
+			"Unknowns": {
+				"findUntilNotUnknown": false,
+				"searched": true,
+				"canHaveTopPlay": true,
+				"canBeSniped": true,
+				"canSnipe": true,
+				"canSnipeUnknowns": true,
+				"canHaveBetterScore": true,
+				"canDoNewPlay": true,
+				"canDoNewMap": true
+			},
+			"feed": {
+				"doPingsPlayerA": false,
+				"doPingsPlayerB": false,
+				"betterPlayPercentage": 2,
+				"top1IfNoUsers": false,
+				"feeds": [{
+					"Channel": "YOUR_MAP_FEED_CHANNEL_ID",
+					"Feeds": ["Top1MainCountries", "BetterTopPlayMainCountries"],
+					"Types": "both"
+				}],
+				"feedMessages": {
+					"Top1": {
+						"type": "embed",
+						"embedTitle": "{Player_A_name} took #1 on {Level_songName} ({Level_difficultyFormated})[ · {Player_A_scorePP}pp]Player_A_scorePP",
+						"embedDescription": "Sniped **{Player_B_name}** by **{Snipe_differenceScorePercentage}%**\n\nTheir score was from {Player_B_timeSinceText}",
+						"buttons": ["beatsaver", "scoresaber", "scoresaberPlayerA"],
+						"embedThumbnail": "PlayerAProfilePicture",
+						"embedImage": "MapCoverPicture",
+						"embedColor": {
+							"value": "#f1c40f",
+							"type": "color"
+						}
+					},
+					"BetterTopPlay": {
+						"type": "embed",
+						"embedTitle": "{Player_A_name} improved a top score",
+						"embedDescription": "Improved **{Player_A_scoreDifferencePercentage}%** on **{Level_songName}** ({Level_difficultyFormated}), new score **{Player_A_baseScorePercentage}%**\n\nOld score was from {Player_A_oldTimeSinceText}",
+						"buttons": ["beatsaver", "scoresaber", "scoresaberPlayerA"],
+						"embedThumbnail": "PlayerAProfilePicture",
+						"embedImage": "MapCoverPicture",
+						"embedColor": {
+							"value": "#ec0042",
+							"type": "color"
+						}
+					}
+				}
+			}
+		}
+	},
+	"messages": {
+		"enable-dm": true,
+		"only-work-on-server": true
+	},
+	"commands": {
+		"disableCommandsForBaseUsers": false,
+		"getplayer": {
+			"type": "embed",
+			"embedTitle": "{scoresaber_name} {country_flag}",
+			"embedColor": {
+				"value": "4C9CF6",
+				"type": "color"
+			},
+			"embedDescription": "ID: `{scoresaber_id}`",
+			"embedFields": {
+				"1": ["PP", "{pp}pp\nWeek difference: {weekDifference}"],
+				"2": ["RANK", "Rank: #{rank}\nCountry rank: #{countryRank}[\nLocal rank: #{mainCountriesRank}]mainCountriesRank"],
+				"3": ["RANKED", "Average Accuracy: {averageRankedAccuracy_2}%\nRanked playcount: {rankedPlayCount}"],
+				"4": ["PLAYS", "Top 1: {averageTop1CountRate_server_ratio}\nTop 1 %: {averageTop1CountRate_server_2}%", false, "serverTop1Count"]
+			},
+			"embedThumbnail": "scoresaber",
+			"embedURL": "scoresaber"
+		},
+		"disabling": []
+	},
+	"logger": {
+		"enableTimestamp": true,
+		"logs": {
+			"info": {
+				"on-console": true,
+				"discord-channel-id": ""
+			},
+			"warn": {
+				"on-console": true,
+				"discord-channel-id": ""
+			},
+			"error": {
+				"on-console": true,
+				"discord-channel-id": ""
+			},
+			"fatal": {
+				"on-console": true,
+				"discord-channel-id": ""
+			},
+			"debug": {
+				"on-console": true,
+				"discord-channel-id": ""
+			},
+			"configuration": {
+				"on-console": true,
+				"discord-channel-id": ""
+			}
+		}
+	},
+	"debug": 0,
+	"testMode": false
+}

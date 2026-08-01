@@ -1,0 +1,9 @@
+.env
+build
+node_modules
+config.json
+testconfig.json
+data/
+*.log
+.DS_Store
+Thumbs.db
