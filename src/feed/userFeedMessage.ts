@@ -315,9 +315,8 @@ export async function postUserFeed(player: user, updateProp: UserFeedChanges) {
 		}])
 	}
 
-	// Rank improvements may post without community snipes; other metrics still require snipes
-	if(!isRankFeedChange(updateProp) && (!snipedPlayers || !snipedPlayers.length)) return
-	
+	if(!snipedPlayers || !snipedPlayers.length) return
+
 
 	const isDataUserMainCountry = isFromMainCountry(getUserCountry(player))
 	const playerCountry = getUserCountry(player)
@@ -350,17 +349,8 @@ export async function postUserFeed(player: user, updateProp: UserFeedChanges) {
 	
 	let combination = ""
 
-	const handlePostFeed = async (channelConfiguration: DefaultChannelFeedConfiguration, playerUpdate: RankUpdate, snipePlayersProp: RankUpdate[]) => {
-		const snipedUpdate = snipePlayersProp[0] ?? {
-			updateNum: 0,
-			updateRank: 0,
-			currentRank: playerUpdate.currentRank,
-			lastRank: playerUpdate.lastRank,
-			dataUser: { ...playerUpdate.dataUser, scoresaberName: "" }
-		}
-
-		await postPlayerFeed(channelConfiguration, combination, playerUpdate, snipedUpdate, snipePlayersProp, updateProp)
-	}
+	const handlePostFeed = async (channelConfiguration: DefaultChannelFeedConfiguration, playerUpdate: RankUpdate, snipePlayersProp: RankUpdate[]) =>
+		await postPlayerFeed(channelConfiguration, combination, playerUpdate, snipePlayersProp[0], snipePlayersProp, updateProp)
 	
 	async function loopContextes(channelConfiguration: DefaultChannelFeedConfiguration, event: FeedsEnabled["events"][""]) {
 		let wasPosted = false
@@ -375,6 +365,8 @@ export async function postUserFeed(player: user, updateProp: UserFeedChanges) {
 			const snipedPlayersUpdate = snipedPlayers
 				.map(sniped => snipedDataUserToUpdate(sniped, updateProp, sniped.rank ?? 0))
 				.filter(context.snipedPlayersCheck)
+
+			if(!snipedPlayersUpdate.length) continue
 
 			wasPosted = true
 			await handlePostFeed(channelConfiguration, playerUpdate, snipedPlayersUpdate)
