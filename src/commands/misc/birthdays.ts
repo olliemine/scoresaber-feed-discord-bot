@@ -1,11 +1,12 @@
 import { ChatInputCommandInteraction, Colors, EmbedBuilder, SlashCommandBuilder } from "discord.js"
-import { isRealisticYear, isToday, monthName, nextOccurrence, parseBirthday, relativeTimestamp } from "../../birthdays/dates.js"
+import { isRealisticYear, isToday, nextOccurrence, parseBirthday } from "../../birthdays/dates.js"
+import { monthName, relativeTimestamp } from "../../misc/time.js"
 import * as store from "../../birthdays/store.js"
 import SentMessageHandler from "../../classes/sentMessageHandler.js"
 import { BotCommand } from "../../commandGetter.js"
 import { localizedSubcommand } from "../../discord/commandBuilders.js"
 import { hasPermissionLevel } from "../../discord/account/userFunctions.js"
-import getLanguage, { languageToLocalization } from "../../languages/lang.js"
+import getLanguage from "../../languages/lang.js"
 import { COMMAND_PERMISSIONS } from "../../types/util.js"
 
 type BirthdayMessage = SentMessageHandler<ChatInputCommandInteraction>
@@ -14,11 +15,14 @@ const ENTRIES_PER_PAGE = 20
 const UPCOMING_LIMIT = 15
 const BIRTHDAY_COLOR = Colors.Gold
 
-const localization = getLanguage.getDefault
-const SERVER_LOCALE = languageToLocalization[getLanguage.defaultLocale]
+function formatDate(day: number, month: number, locale: string) {
+	const date = new Date(Date.UTC(2000, month, day))
 
-function formatDay(day: number, month: number) {
-	return `${day} ${monthName(month, SERVER_LOCALE)}`
+	return new Intl.DateTimeFormat(locale, {
+		day: "numeric",
+		month: "long",
+		timeZone: "UTC"
+	}).format(date)
 }
 
 async function readBirthdayOption(message: ChatInputCommandInteraction, sentMessage: BirthdayMessage) {
@@ -26,12 +30,12 @@ async function readBirthdayOption(message: ChatInputCommandInteraction, sentMess
 	const parsed = parseBirthday(input)
 
 	if(!parsed) {
-		await sentMessage.defaultError("birthdayInvalidFormat")
+		await sentMessage.localesError("birthdayInvalidFormat")
 		return null
 	}
 
 	if(!isRealisticYear(parsed.year)) {
-		await sentMessage.defaultError("birthdayInvalidYear")
+		await sentMessage.localesError("birthdayInvalidYear")
 		return null
 	}
 
@@ -40,26 +44,29 @@ async function readBirthdayOption(message: ChatInputCommandInteraction, sentMess
 
 async function handleAdd(message: ChatInputCommandInteraction, sentMessage: BirthdayMessage) {
 	const birthday = await readBirthdayOption(message, sentMessage)
+	const localization = sentMessage.getLocalization
 
 	if(!birthday) return
 
 	const existing = store.find(sentMessage.author.username, sentMessage.author.id)
 
-	if(existing?.banned) return await sentMessage.defaultError("birthdayBanned")
-	if(existing?.birthday) return await sentMessage.defaultError("birthdayAlreadyRegistered")
+	if(existing?.banned) return await sentMessage.localesError("birthdayBanned")
+	if(existing?.birthday) return await sentMessage.localesError("birthdayAlreadyRegistered")
 
 	await store.set(sentMessage.author.username, sentMessage.author.id, birthday.input)
 
 	await sentMessage.success({
-		description: `${localization("birthdayAdded")}: ${formatDay(birthday.parsed.day, birthday.parsed.month)}`
+		description: `${localization("birthdayAdded")}: ${formatDate(birthday.parsed.day, birthday.parsed.month, sentMessage.getLocale())}`,
+		title: localization("successTitle")
 	})
 }
 
 async function handleEdit(message: ChatInputCommandInteraction, sentMessage: BirthdayMessage) {
 	const existing = store.find(sentMessage.author.username, sentMessage.author.id)
+	const localization = sentMessage.getLocalization
 
-	if(existing?.banned) return await sentMessage.defaultError("birthdayBanned")
-	if(!existing?.birthday) return await sentMessage.defaultError("birthdayNotRegistered")
+	if(existing?.banned) return await sentMessage.localesError("birthdayBanned")
+	if(!existing?.birthday) return await sentMessage.localesError("birthdayNotRegistered")
 
 	const birthday = await readBirthdayOption(message, sentMessage)
 
@@ -68,7 +75,8 @@ async function handleEdit(message: ChatInputCommandInteraction, sentMessage: Bir
 	await store.set(sentMessage.author.username, sentMessage.author.id, birthday.input)
 
 	await sentMessage.success({
-		description: `${localization("birthdayUpdated")}: ${formatDay(birthday.parsed.day, birthday.parsed.month)}`
+		description: `${localization("birthdayUpdated")}: ${formatDate(birthday.parsed.day, birthday.parsed.month, sentMessage.getLocale())}`,
+		title: localization("successTitle")
 	})
 }
 
@@ -80,23 +88,29 @@ async function handleDelete(sentMessage: BirthdayMessage) {
 
 	await store.clear(existing)
 
-	await sentMessage.defaultSuccess("birthdayDeleted")
+	await sentMessage.localesSuccess("birthdayDeleted")
 }
 
 async function handleBan(message: ChatInputCommandInteraction, sentMessage: BirthdayMessage) {
+	const localization = sentMessage.getLocalization
+
 	if(!await hasPermissionLevel(sentMessage.author.id, COMMAND_PERMISSIONS.ADMIN)) {
-		return await sentMessage.defaultError("commandNotEnoughPermissions")
+		return await sentMessage.localesError("commandNotEnoughPermissions")
 	}
 
 	const target = message.options.getUser("user", true)
 
 	await store.ban(target.username, target.id)
 
-	await sentMessage.success({ description: `<@${target.id}> ${localization("birthdayUserBanned")}` })
+	await sentMessage.success({ 
+		description: `<@${target.id}> ${localization("birthdayUserBanned")}`,
+		title: localization("successTitle")
+	})
 }
 
 async function handleList(sentMessage: BirthdayMessage) {
 	await sentMessage.loading()
+	const localization = sentMessage.getLocalization
 
 	const title = `📅 ${localization("birthdayListTitle")}`
 
@@ -119,7 +133,7 @@ async function handleList(sentMessage: BirthdayMessage) {
 		for(const { entry, birthday } of entries.slice(index, index + ENTRIES_PER_PAGE)) {
 			if(birthday.month !== currentMonth) {
 				currentMonth = birthday.month
-				description += `${description ? "\n" : ""}**${monthName(birthday.month, SERVER_LOCALE)}**\n`
+				description += `${description ? "\n" : ""}**${monthName(birthday.month, sentMessage.getLocale())}**\n`
 			}
 
 			description += `• ${store.mention(entry)} — ${birthday.day}\n`
@@ -143,6 +157,7 @@ async function handleList(sentMessage: BirthdayMessage) {
 }
 
 async function handleRecent(sentMessage: BirthdayMessage) {
+	const localization = sentMessage.getLocalization
 	const title = `🎂 ${localization("birthdayRecentTitle")}`
 
 	const entries = store.active()
@@ -161,7 +176,7 @@ async function handleRecent(sentMessage: BirthdayMessage) {
 	const description = upcoming.map(({ entry, birthday, next }) => {
 		const when = isToday(birthday) ? `**${localization("birthdayToday")}** 🎉` : relativeTimestamp(next)
 
-		return `• ${store.mention(entry)} — ${formatDay(birthday.day, birthday.month)} (${when})`
+		return `• ${store.mention(entry)} — ${formatDate(birthday.day, birthday.month, sentMessage.getLocale())} (${when})`
 	}).join("\n")
 
 	await sentMessage.normal({

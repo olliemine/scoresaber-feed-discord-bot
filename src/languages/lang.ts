@@ -9,7 +9,9 @@ const languages = {
 
 export const localizationToLanguage: {[key: string]: languages} = {
 	"en-US": "EN",
-	"es-ES": "ES"
+	"en-GB": "EN",
+	"es-ES": "ES",
+	"es-419": "ES"
 }
 
 export const languageToLocalization: {[key in languages]: string} = {

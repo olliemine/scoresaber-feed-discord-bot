@@ -44,10 +44,3 @@ export function ageOn({ day, month, year }: Birthday, now = new Date()) {
 
 	return beforeBirthday ? age - 1 : age
 }
-
-export function monthName(month: number, locale: string) {
-	return new Intl.DateTimeFormat(locale, { month: "long", timeZone: "UTC" })
-		.format(new Date(Date.UTC(2000, month - 1, 1)))
-}
-
-export const relativeTimestamp = (date: Date) => `<t:${Math.floor(date.getTime() / 1000)}:R>`

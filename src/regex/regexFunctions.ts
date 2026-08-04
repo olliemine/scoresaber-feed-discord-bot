@@ -4,7 +4,7 @@ import { user } from "../types/db.js"
 import { getUserCountry } from "../discord/account/userFunctions.js"
 import { top1CountRate } from "../db/levelPipelines.js"
 import { languages } from "../languages/lang.js"
-import { timeSince } from "../misc/time.js"
+import { fullTimestamp, relativeTimestamp, timeSince } from "../misc/time.js"
 
 export type averageTop1CountRateArr = [("server" | "country"), (number | "rounded" | "ratio"), ("ranked" | undefined)]
 
@@ -46,9 +46,9 @@ export function dateFormats(type: string, date: Date, locale: languages): string
 	
 	switch(lowerCaseType) {
 		case "timeset":
-			return `<t:${Math.floor(date.getTime() / 1000)}>`
+			return fullTimestamp(date)
 		case "timesince":
-			return `<t:${Math.floor(date.getTime() / 1000)}:R>`
+			return relativeTimestamp(date)
 		case "timesettext":
 			return date.toLocaleDateString(getConfig().language, { weekday: "long", year: "numeric", month: "long", day: "numeric" })
 		case "timesincetext":
