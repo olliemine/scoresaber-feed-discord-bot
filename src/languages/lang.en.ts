@@ -18,6 +18,10 @@ export default {
 	userCategory: "User",
 	closed: "closed",
 	loading: "Loading",
+	page: "Page",
+	seconds: "seconds",
+	previousPage: "Previous",
+	nextPage: "Next",
 
 	/**
 	 * Titles
@@ -150,6 +154,139 @@ export default {
 	 */
 	commandNotEnoughPermissions: "This command can only be executed by a higher rank",
 	commandTimeout: "Please wait a little bit before using the bot again",
+	invalidCommand: "Invalid command",
+
+	/**
+	 * Rankedle command
+	 */
+	gameCategory: "Games",
+	rankedleDescription: "Guess the ranked Beat Saber song",
+	rankedleStartDescription: "Start a new Rankedle game",
+	rankedleJoinDescription: "Join the running Rankedle game",
+	rankedleLeaveDescription: "Leave the current Rankedle game",
+	rankedleStopDescription: "Stop the current Rankedle game",
+	rankedleSkipDescription: "Skip the current song",
+	rankedleLeaderboardDescription: "Show the global leaderboard",
+	rankedleHintDescription: "Reveal a hint about the current song",
+	rankedleVoteskipDescription: "Vote to skip the current song",
+	rankedlePageDescription: "Page number",
+
+	/**
+	 * Rankedle errors
+	 */
+	rankedleNotConfigured: "Rankedle has not been configured",
+	rankedleWrongChannel: "The game can only be started in",
+	rankedleGameInAnotherChannel: "The game is running in another channel",
+	rankedleAlreadyActive: "A game is already running",
+	rankedleNoActiveGame: "There is no running game",
+	rankedleAlreadyJoined: "You are already playing",
+	rankedleNotPlaying: "You are not playing",
+	rankedleOnlyPlayers: "Only players can do that, join with /rankedle join",
+	rankedleNoCurrentSong: "There is no song to act on",
+	rankedleRoundAlreadyEnded: "This round has already ended",
+	rankedleAlreadyVoted: "You already voted to skip this song",
+	rankedleAllHintsUsed: "Every hint has already been used",
+	rankedleLeaderboardEmpty: "The leaderboard is empty",
+	rankedleInvalidPage: "The page must be between 1 and",
+	rankedleSongError: "A song could not be found, the game has been stopped",
+	rankedleUnexpectedStop: "An unexpected error occured, the game has been stopped",
+
+	/**
+	 * Rankedle responses
+	 */
+	rankedleJoined: "You joined the Rankedle game",
+	rankedleLeft: "You left the Rankedle game",
+	rankedleStopped: "Game stopped",
+	rankedleJoinedAnnouncement: "joined the game",
+	rankedleLeftAnnouncement: "left the game",
+	rankedleVoteRegistered: "Your vote to skip has been registered",
+
+	/**
+	 * Rankedle game
+	 */
+	rankedleNewGameTitle: "New Rankedle game starting",
+	rankedleSecondsToJoin: "seconds left to join the game!",
+	rankedlePointsToWin: "points to win",
+	rankedleGameStartedTitle: "The game has started",
+	rankedleJoinWithCommand: "You can still join with /rankedle join",
+	rankedleJoinButton: "Join the game",
+	rankedleVoteskipButton: "Vote to skip",
+	rankedlePlayers: "Players",
+	rankedleNoPlayers: "None",
+	rankedleRound: "Round",
+	rankedleSearchingSong: "Looking for a random song",
+	rankedleGuessPrompt: "Guess the name of this song",
+	rankedleTimeLimit: "Time limit",
+	rankedleHints: "Hints",
+	rankedleHintHowTo: "Use /rankedle hint for a random hint",
+	rankedlePoints: "points",
+	rankedlePointsShort: "pts",
+	rankedleSongBy: "by",
+	rankedleSongWas: "The song was",
+	rankedleGuessedIt: "guessed it",
+	rankedleCorrectTitle: "Correct answer",
+	rankedleCurrentScoreTitle: "Current score",
+	rankedleTimeoutTitle: "Time is up",
+	rankedleTimeoutDescription: "Nobody guessed it",
+	rankedleSkippedTitle: "Song skipped",
+	rankedleSkippedVoteTitle: "Song skipped by vote",
+	rankedleAllVotedTitle: "Every player voted",
+	rankedleSkipping: "Skipping song",
+	rankedleInactivityTitle: "Game ended because of inactivity",
+	rankedleInactivityDescription: "No participation was detected during the round",
+	rankedleGameOverTitle: "Game over",
+	rankedleFinalResults: "Final results",
+	rankedleNoParticipants: "There were no participants",
+	rankedleStoppedTitle: "Rankedle game stopped",
+	rankedleStoppedByAdmin: "The game was stopped by an administrator",
+	rankedleEveryoneLeft: "Every player left the game",
+	rankedleLeaderboardTitle: "Rankedle global leaderboard",
+	rankedleLeaderboardFull: "Use /rankedle leaderboard to see the full table",
+	rankedleEmptyPage: "No players on this page",
+
+	/**
+	 * Rankedle hints
+	 */
+	rankedleHintTitle: "Hint",
+	rankedleHintAudio: "Extended audio! Listen to a longer clip of the song",
+	rankedleHintUploader: "Mapper hint: the song was uploaded by",
+	rankedleHintDifficulties: "Difficulty hint, the song has the following difficulties",
+	rankedleHintCover: "Visual hint: here is the cover art (slightly blurred)",
+	rankedleHintCoverFallback: "Visual hint: here is the cover art",
+	rankedleNotRanked: "Not ranked",
+
+	/**
+	 * Birthday command
+	 */
+	birthdayDescription: "Manage birthdays",
+	birthdayAddDescription: "Save your birthday",
+	birthdayEditDescription: "Change your birthday",
+	birthdayDeleteDescription: "Delete your birthday",
+	birthdayBanDescription: "Ban a user from the birthday commands",
+	birthdayListDescription: "Show every birthday grouped by month",
+	birthdayRecentDescription: "Show the upcoming birthdays",
+	birthdayDateOptionDescription: "Your birthday, formatted as dd-MM-yyyy",
+	birthdayUserOptionDescription: "The user to ban",
+
+	/**
+	 * Birthday responses
+	 */
+	birthdayInvalidFormat: "Invalid date, use the dd-MM-yyyy format (example: 15-03-1990)",
+	birthdayInvalidYear: "Please enter a realistic year of birth",
+	birthdayBanned: "You are banned from the birthday commands",
+	birthdayAlreadyRegistered: "You already saved a birthday, use /birthday edit to change it",
+	birthdayNotRegistered: "You have not saved a birthday, use /birthday add to save one",
+	birthdayAdded: "Birthday saved",
+	birthdayUpdated: "Birthday updated",
+	birthdayDeleted: "Your birthday has been deleted",
+	birthdayUserBanned: "has been banned from the birthday commands",
+	birthdayListTitle: "Birthday list",
+	birthdayListEmpty: "No birthdays have been saved yet",
+	birthdayRecentTitle: "Upcoming birthdays",
+	birthdayRegisteredCount: "birthdays saved",
+	birthdayToday: "Today is their birthday",
+	birthdayAnnouncementTitle: "Happy birthday",
+	birthdayAnnouncementDescription: "is turning",
 
 	/**
 	 * TODO: admin commands

@@ -1,58 +1,81 @@
 import fs from "fs"
-import { logger } from "../logger.js";
 import { fileURLToPath } from 'url';
 import path, { dirname } from 'path';
+import { BirthdayData } from "../types/birthdays.js";
+import { RankedleLeaderboardEntry } from "../types/rankedle.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-type Path = "visitors"
-type Content<T extends Path> = T extends "visitors" ? { ids: string[] } : unknown 
+const dataPath = (name: string) => path.join(__dirname, "../../data", name)
+
+type Contents = {
+	visitors: { ids: string[] }
+	birthdays: BirthdayData
+	rankedleLeaderboard: RankedleLeaderboardEntry[]
+}
+
+type Path = keyof Contents
+type Content<T extends Path> = Contents[T]
+
+const DEFAULTS: { [K in Path]: () => Contents[K] } = {
+	visitors: () => ({ ids: [] }),
+	birthdays: () => ({ birthdays: [] }),
+	rankedleLeaderboard: () => []
+}
 
 class PathResolve {
 	path: Path
 	localPath: string
+	legacyPath?: string
 
 	constructor(path: Path) {
 		this.path = path
 		this.localPath = this.getPath()
+		this.legacyPath = this.getLegacyPath()
 	}
-	
+
 	private getPath(): string {
 		switch(this.path) {
 			case "visitors":
-				return path.join(__dirname, "../../data/visitors.json")
+				return dataPath("visitors.json")
+			case "birthdays":
+				return dataPath("birthdays.json")
+			case "rankedleLeaderboard":
+				return dataPath("rankedleLeaderboard.json")
 		}
+	}
+
+	private getLegacyPath(): string | undefined {
+		if(this.path === "rankedleLeaderboard") return path.join(__dirname, "../../rankedle/leaderboard.txt")
+		return undefined
 	}
 }
 
-export function getJSON<T extends Path>(path: T): Promise<Content<T>> {
-	return new Promise(async (resolve, reject) => {
-		const pathResolve = new PathResolve(path)
-			
-		fs.readFile(pathResolve.localPath, "utf-8", (err, data) => {
-			if(err) {
-				if(err.stack) logger.error(err.stack)
-				return reject(err)
-			}
-	
-			const parsedData = JSON.parse(data)
-			return resolve(parsedData)
-		})
-	})
+async function readIfExists(localPath: string): Promise<string | null> {
+	try {
+		return await fs.promises.readFile(localPath, "utf-8")
+	} catch(err) {
+		if((err as NodeJS.ErrnoException).code === "ENOENT") return null
+		throw err
+	}
 }
 
-export function writeJSON<T extends Path>(path: T, data: Content<T>): Promise<void> {
-	return new Promise((resolve, reject) => {
-		const { localPath } = new PathResolve(path)
+export async function getJSON<T extends Path>(path: T): Promise<Content<T>> {
+	const { localPath, legacyPath } = new PathResolve(path)
 
-		fs.writeFile(localPath, JSON.stringify(data), "utf-8", (err) => {
-			if(err) {
-				if(err.stack) logger.error(err.stack)
-				return reject(err)
-			}
+	const data = await readIfExists(localPath) ?? (legacyPath ? await readIfExists(legacyPath) : null)
 
-			resolve()
-		})
-	})
+	if(data == null) return DEFAULTS[path]() as Content<T>
+
+	return JSON.parse(data)
+}
+
+export async function writeJSON<T extends Path>(path: T, data: Content<T>): Promise<void> {
+	const { localPath } = new PathResolve(path)
+	const temporaryPath = `${localPath}.tmp`
+
+	await fs.promises.mkdir(dirname(localPath), { recursive: true })
+	await fs.promises.writeFile(temporaryPath, JSON.stringify(data, null, 2), "utf-8")
+	await fs.promises.rename(temporaryPath, localPath)
 }

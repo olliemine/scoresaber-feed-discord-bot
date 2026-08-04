@@ -62,21 +62,10 @@ type RankUpdate = {
 }
 
 async function dataUserToUpdate(dataUser: user, updateProp: UserFeedChanges, matchFilter?: PipelineStage): Promise<RankUpdate> {
-	if(isRankFeedChange(updateProp)) {
-		const currentRank = dataUser[updateProp].value
-		const lastRank = dataUser[updateProp].lastFeed
+	const order = isRankFeedChange(updateProp) ? "ascending" : "descending"
 
-		return {
-			updateNum: dataUser[updateProp].value - dataUser[updateProp].lastFeed,
-			updateRank: lastRank - currentRank,
-			currentRank,
-			lastRank,
-			dataUser
-		}
-	}
-
-	const currentRank = await getRank(dataUser, `${updateProp}.value`, false, "descending", matchFilter)
-	const lastRank = await getRank(dataUser, `${updateProp}.lastFeed`, false, "descending", matchFilter)
+	const currentRank = await getRank(dataUser, `${updateProp}.value`, false, order, matchFilter)
+	const lastRank = await getRank(dataUser, `${updateProp}.lastFeed`, false, order, matchFilter)
 	
 	if(currentRank === null || lastRank === null) throw new Error(`getRank return null on user (${dataUser.scoresaberID})`)
 
@@ -326,9 +315,8 @@ export async function postUserFeed(player: user, updateProp: UserFeedChanges) {
 		}])
 	}
 
-	// Rank improvements may post without community snipes; other metrics still require snipes
-	if(!isRankFeedChange(updateProp) && (!snipedPlayers || !snipedPlayers.length)) return
-	
+	if(!snipedPlayers || !snipedPlayers.length) return
+
 
 	const isDataUserMainCountry = isFromMainCountry(getUserCountry(player))
 	const playerCountry = getUserCountry(player)
@@ -361,17 +349,8 @@ export async function postUserFeed(player: user, updateProp: UserFeedChanges) {
 	
 	let combination = ""
 
-	const handlePostFeed = async (channelConfiguration: DefaultChannelFeedConfiguration, playerUpdate: RankUpdate, snipePlayersProp: RankUpdate[]) => {
-		const snipedUpdate = snipePlayersProp[0] ?? {
-			updateNum: 0,
-			updateRank: 0,
-			currentRank: playerUpdate.currentRank,
-			lastRank: playerUpdate.lastRank,
-			dataUser: { ...playerUpdate.dataUser, scoresaberName: "" }
-		}
-
-		await postPlayerFeed(channelConfiguration, combination, playerUpdate, snipedUpdate, snipePlayersProp, updateProp)
-	}
+	const handlePostFeed = async (channelConfiguration: DefaultChannelFeedConfiguration, playerUpdate: RankUpdate, snipePlayersProp: RankUpdate[]) =>
+		await postPlayerFeed(channelConfiguration, combination, playerUpdate, snipePlayersProp[0], snipePlayersProp, updateProp)
 	
 	async function loopContextes(channelConfiguration: DefaultChannelFeedConfiguration, event: FeedsEnabled["events"][""]) {
 		let wasPosted = false
@@ -386,6 +365,8 @@ export async function postUserFeed(player: user, updateProp: UserFeedChanges) {
 			const snipedPlayersUpdate = snipedPlayers
 				.map(sniped => snipedDataUserToUpdate(sniped, updateProp, sniped.rank ?? 0))
 				.filter(context.snipedPlayersCheck)
+
+			if(!snipedPlayersUpdate.length) continue
 
 			wasPosted = true
 			await handlePostFeed(channelConfiguration, playerUpdate, snipedPlayersUpdate)

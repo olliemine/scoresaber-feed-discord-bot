@@ -1,7 +1,7 @@
 import { logger, DEBUG_LEVELS } from './logger.js'
 import getConfig from './config/getConfig.js'
 import { languageString } from './languages/lang.js'
-import { AutocompleteInteraction, ChatInputCommandInteraction, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder } from 'discord.js'
+import { AutocompleteInteraction, ChatInputCommandInteraction, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder, SlashCommandSubcommandsOnlyBuilder } from 'discord.js'
 import changeNameCommand from './commands/account/changeName.js'
 import loginCommand from './commands/account/link.js'
 import logoutCommand from './commands/account/unlink.js'
@@ -19,6 +19,8 @@ import changeCountryCommand from "./commands/admin/changeCountry.js"
 import aMultiLoginCommand from "./commands/admin/aMultiLogin.js"
 import resetPlaysNumbersCommand from "./commands/temp_fix/resetPlaysNumbers.js"
 import helpCommand from "./commands/misc/help.js"
+import birthdayCommand from "./commands/misc/birthdays.js"
+import rankedleCommand from "./commands/rankedle/rankedle.js"
 import { COMMAND_PERMISSIONS } from './types/util.js'
 
 let commands: {[key: string]: BotCommand} = {}
@@ -35,7 +37,7 @@ export type BotCommand = {
 	 * Seconds for the command to cooldown, bypassed by a level 2 permission
 	 */
 	cooldown: number,
-	slashCommand?: SlashCommandBuilder | SlashCommandOptionsOnlyBuilder,
+	slashCommand?: SlashCommandBuilder | SlashCommandOptionsOnlyBuilder | SlashCommandSubcommandsOnlyBuilder,
 	autocomplete?: (interaction: AutocompleteInteraction) => any,
 	execute: (interaction: ChatInputCommandInteraction) => any
 }
@@ -58,7 +60,9 @@ async function start() {
 		changeCountryCommand,
 		aMultiLoginCommand,
 		resetPlaysNumbersCommand,
-		helpCommand
+		helpCommand,
+		birthdayCommand,
+		rankedleCommand
 	]
 
 	const disabling = getConfig().commands.disabling

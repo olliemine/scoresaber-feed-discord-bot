@@ -12,6 +12,7 @@ Needs:
 - Node (modern enough for discord.js v14 / ES modules)
 - MongoDB
 - A Discord bot with **Server Members Intent** + **Message Content Intent** enabled
+- `ffmpeg` on `PATH`, only needed for the Rankedle game
 
 1. Clone the repo
 2. `npm install`
@@ -42,6 +43,8 @@ Needs:
 - [Player feed](#player-feed)
 - [players update roles](#players-update-roles)
 - [getplayer embed config](#getplayer-embed-config)
+- [Rankedle](#rankedle)
+- [Birthdays](#birthdays)
 
 ---
 
@@ -411,6 +414,48 @@ Configured at `commands.getplayer` (same message/embed sintax as feeds).
 ## EmbedColor
 - `{ "type": "color", "value": "#4C9CF6" }` or legacy color names
 - `{ "type": "image", "value": "scoresaber" }` / `"discordUser"` → vibrant color from that picture
+
+---
+
+# Rankedle
+
+Song guessing game.
+
+Requires `ffmpeg` on `PATH`. Songs are picked from ScoreSaber `/api/v2/maps?status=RANKED`, audio and covers come from BeatSaver. Downloaded maps are cached under `data/rankedle/` and deleted when the game ends.
+
+The global leaderboard lives in `data/rankedleLeaderboard.json`.
+
+`commands.rankedle`:
+
+- `channelId`: where the game is played
+- `countdownSeconds`: join window before round 1
+- `audioClipDuration`: seconds of audio per round
+- `extendedAudioClipDuration`: seconds for the extended audio hint
+- `maxPointsPerGame`: points needed to win
+- `waitBetweenRounds`: pause between rounds
+- `roundTimeLimit`: seconds to guess before the round times out
+- `downloadTimeoutMS`: map download is aborted past this and another song is picked
+- `minStars` / `maxStars`: optional star bounds for the maps that get picked
+- `embedColor`: `"#RRGGBB"` string, unlike the `{ value, type }` form used by feed/getplayer embeds
+
+Subcommands: `start`, `join`, `leave`, `hint`, `voteskip`, `leaderboard [page]`, plus `stop` and `skip` for admins.
+
+A round ends early when someone guesses, an admin skips, or every player votes to skip. If a whole round passes with no messages from any player the game ends on inactivity.
+
+---
+
+# Birthdays
+
+`/birthday` with `add`, `edit`, `delete`, `list`, `recent`, and `ban` for admins. Dates are `dd-MM-yyyy`.
+
+Stored in `data/birthdays.json`. Entries are matched by Discord ID, falling back to username so rows written by older versions keep working.
+
+`commands.birthdays`:
+
+- `channelId`: where birthdays are announced. While empty nothing is announced, the commands still work
+- `announceHourUTC`: hour of the day (UTC) to announce at
+
+The announcement is scheduled with a timer to the next occurrence of that hour rather than polled.
 
 ---
 

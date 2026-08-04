@@ -1,5 +1,5 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, ColorResolvable, Colors, ComponentType, EmbedBuilder, EmbedData, InteractionReplyOptions, InteractionUpdateOptions, Message, MessageCreateOptions, MessageEditOptions, resolveColor, User } from "discord.js"
-import getLanguage, { languageString, localizationFunction } from "../languages/lang.js"
+import getLanguage, { languageString, languageToLocalization, localizationFunction, localizationToLanguage } from "../languages/lang.js"
 import { sendDiscordMessage } from "../discord/message/interactionMessageHandler.js"
 import { UPDATE_STATUS } from "../types/util.js"
 import getConfig from "../config/getConfig.js"
@@ -52,6 +52,14 @@ export default class SentMessageHandler<T extends CommandMessage = CommandMessag
 		this.respondingMessage = respondingMessage
 		this.author = respondingMessage instanceof ChatInputCommandInteraction ? respondingMessage.user : respondingMessage.author
 		return this
+	}
+
+	getLocale(): string {
+		if(this.respondingMessage instanceof Message || !this.respondingMessage.locale || !localizationToLanguage[this.respondingMessage.locale]) {
+			return languageToLocalization[getLanguage.defaultLocale]
+		}
+
+		return this.respondingMessage.locale
 	}
 
 	getLocalization: localizationFunction = (languageString?: languageString) => {				
@@ -135,6 +143,14 @@ export default class SentMessageHandler<T extends CommandMessage = CommandMessag
 		if(thumbnail) options.thumbnail = { url: thumbnail }
 
 		return await this.success(options)
+	}
+
+	async defaultError(localMessage: languageString) {
+		return await this.error({ description: getLanguage.getDefault(localMessage) })
+	}
+
+	async defaultSuccess(localMessage: languageString) {
+		return await this.success({ description: getLanguage.getDefault(localMessage) })
 	}
 
 	async localesNormal(localMessage?: languageString, localTitle?: languageString, thumbnail?: string, color?: ColorResolvable) {

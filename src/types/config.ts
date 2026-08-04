@@ -45,6 +45,23 @@ interface Log {
 	"on-console": boolean
 	"discord-channel-id": string
 }
+export interface RankedleConfiguration {
+	channelId?: string
+	countdownSeconds: number
+	audioClipDuration: number
+	extendedAudioClipDuration: number
+	maxPointsPerGame: number
+	waitBetweenRounds: number
+	roundTimeLimit: number
+	downloadTimeoutMS: number
+	minStars?: number
+	maxStars?: number
+	embedColor: string
+}
+export interface BirthdaysConfiguration {
+	channelId?: string
+	announceHourUTC: number
+}
 
 export default interface config {
 	prefixes: string[]
@@ -151,6 +168,8 @@ export default interface config {
 	commands: {
 		disableCommandsForBaseUsers: boolean
 		getplayer?: RegexMessage
+		rankedle: RankedleConfiguration
+		birthdays: BirthdaysConfiguration
 		disabling?: string[]
 	}
 	logger: {

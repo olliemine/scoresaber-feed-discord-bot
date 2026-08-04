@@ -107,7 +107,7 @@
 		},
 		"mapFeeds": {
 			"type": "string",
-			"pattern": "^(Top1|NewMap|NewPlay|BetterPlay|BetterTopPlay|Snipe|TopPlay-(Country|All|Personal))(All|MainCountries)?$"
+			"pattern": "^((Top1|NewMap|NewPlay|BetterPlay|BetterTopPlay|Snipe)(All|MainCountries)?|TopPlay(Personal|Country|All)?)$"
 		},
 		"playerFeeds": {
 			"type": "string",
@@ -597,6 +597,90 @@
 			"properties": {
 				"getplayer": {
 					"$ref": "#/definitions/regexMessage"
+				},
+				"rankedle": {
+					"type": "object",
+					"title": "Rankedle song guessing game",
+					"properties": {
+						"channelId": {
+							"title": "Channel the game can be started in, the command is unavailable while unset",
+							"type": "string"
+						},
+						"countdownSeconds": {
+							"title": "Seconds players get to join before the first round",
+							"type": "number",
+							"minimum": 5,
+							"default": 20
+						},
+						"audioClipDuration": {
+							"title": "Seconds of audio played each round",
+							"type": "number",
+							"minimum": 1,
+							"default": 5
+						},
+						"extendedAudioClipDuration": {
+							"title": "Seconds of audio played by the extended audio hint",
+							"type": "number",
+							"minimum": 1,
+							"default": 10
+						},
+						"maxPointsPerGame": {
+							"title": "Points needed to win a game",
+							"type": "number",
+							"minimum": 1,
+							"default": 5
+						},
+						"waitBetweenRounds": {
+							"title": "Seconds between the end of a round and the next one",
+							"type": "number",
+							"minimum": 0,
+							"default": 5
+						},
+						"roundTimeLimit": {
+							"title": "Seconds players get to guess each round",
+							"type": "number",
+							"minimum": 10,
+							"default": 120
+						},
+						"downloadTimeoutMS": {
+							"title": "Milliseconds before a map download is aborted and another song is picked",
+							"type": "number",
+							"minimum": 1000,
+							"default": 15000
+						},
+						"minStars": {
+							"title": "Only pick ranked maps at or above this star rating",
+							"type": "number",
+							"minimum": 0
+						},
+						"maxStars": {
+							"title": "Only pick ranked maps at or below this star rating",
+							"type": "number",
+							"minimum": 0
+						},
+						"embedColor": {
+							"type": "string",
+							"pattern": "^#([0-9A-Fa-f]{6})$",
+							"default": "#FF5733"
+						}
+					}
+				},
+				"birthdays": {
+					"type": "object",
+					"title": "Birthday tracking",
+					"properties": {
+						"channelId": {
+							"title": "Channel birthdays are announced in, announcements are disabled while unset",
+							"type": "string"
+						},
+						"announceHourUTC": {
+							"title": "Hour of the day, in UTC, birthdays are announced at",
+							"type": "number",
+							"minimum": 0,
+							"maximum": 23,
+							"default": 9
+						}
+					}
 				},
 				"disableCommandsForBaseUsers": {
 					"title": "Meant for testing purposes, disables commands for all base users",

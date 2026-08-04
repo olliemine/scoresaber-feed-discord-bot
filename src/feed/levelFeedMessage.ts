@@ -20,6 +20,7 @@ import userSchema from "../models/userSchema.js"
 import { createButtonWithEmoji } from "../discord/message/buttons.js";
 import { DiscordVariables } from "../classes/sentMessageHandler.js";
 import { ScoreSaberPlay } from "../classes/scoreSaberPlay.js";
+import { fullTimestamp, relativeTimestamp } from "../misc/time.js";
 
 function getScoresaberLink(map: level) {
 	return `https://scoresaber.com/leaderboard/${map.levelID}`
@@ -171,10 +172,13 @@ const stringToDecoded: embedDecodeFunction<Arguments> = async (input, dataArgume
 				return map["isRanked"] ? "✅ Ranked" : "❌ Ranked"
 
 			case "creationDate":
-				return `<t:${Math.floor(score.levelCreatedAt.getTime() / 1000)}>`
+				return fullTimestamp(score.levelCreatedAt)
 	
 			case "creationSince":
-				return `<t:${Math.floor(score.levelCreatedAt.getTime() / 1000)}:R>`
+				return relativeTimestamp(score.levelCreatedAt)
+
+			case "stars":
+				return map["isRanked"] ? map.stars.toString() : ""
 		}
 	}
 
@@ -288,7 +292,7 @@ const stringToDecoded: embedDecodeFunction<Arguments> = async (input, dataArgume
 				return dateFormats(args[2], player.date, getLanguage.defaultLocale)
 
 			case "HMD":
-				return score.hmdDevice
+				return player.HMD
 
 			case "scoreDifference":
 				if(oldPlayer == null) return ""
