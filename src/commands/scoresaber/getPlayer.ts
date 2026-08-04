@@ -71,9 +71,9 @@ const stringToDecoded: embedDecodeFunction<Arguments> = async (input, dataArgume
 		case "pp":
 			return numberWithCommas(parseFloat(scoresaberUser.stats.totalPP.toFixed(2)))
 		case "rank":
-			return numberWithCommas(dataUser?.scoresaberRank?.value ?? scoresaberUser.stats.rank)
+			return numberWithCommas(dataUser?.scoresaberRank?.value || scoresaberUser.stats.rank)
 		case "countryRank":
-			return numberWithCommas(dataUser?.scoresaberCountryRank?.value ?? scoresaberUser.stats.countryRank)
+			return numberWithCommas(dataUser?.scoresaberCountryRank?.value || scoresaberUser.stats.countryRank)
 		case "mainCountriesRank":
 			if(!dataUser) return ""
 			if(dataUser.mainCountriesRank?.value) return numberWithCommas(dataUser.mainCountriesRank.value)

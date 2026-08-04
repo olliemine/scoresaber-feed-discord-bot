@@ -83,7 +83,7 @@ async function stringToDecoded(input: string, dataArguments: dataArguments): Pro
 		case "rank":
 			if(!scoresaberUser) return ""
 
-			return (dataUser?.scoresaberRank?.value ?? scoresaberUser.stats.rank).toString()
+			return (dataUser?.scoresaberRank?.value || scoresaberUser.stats.rank).toString()
 		case "countryRank":
 			if(dataUser?.scoresaberCountryRank?.value) return dataUser.scoresaberCountryRank.value.toString()
 
