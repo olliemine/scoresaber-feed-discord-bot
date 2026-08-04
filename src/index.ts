@@ -9,6 +9,7 @@ import mongo from "./mongo.js"
 import { Client, GatewayIntentBits, Partials, REST } from "discord.js"
 import { startLexicon as userFunctionsStart } from "./discord/account/userFunctions.js"
 import { guildMemberAddHandler, guildMemberRemoveHandler, messageHandler } from "./discord/handlers/client.js"
+import { buttonHandler } from "./discord/handlers/buttons.js"
 import openSocketScoresaber from "./ws/scoresaber.js"
 import openSocketBeatsaver from "./ws/beatsaver.js"
 import getConfig from "./config/getConfig.js"
@@ -17,6 +18,8 @@ import userSchema from "./models/userSchema.js"
 import getUnknowns from './scoresaber/player/getUnknowns.js'
 import { UPDATE_STATUS_LANGUAGE } from './update/updateStatus.js'
 import getLanguage from './languages/lang.js'
+import { start as rankedleStart } from './rankedle/roundRunner.js'
+import { start as birthdaysStart } from './birthdays/scheduler.js'
 
 let appContext: {discordClient: Client, server?: import("discord.js").Guild, hasStarted: boolean, rest?: REST, regionNames: Intl.DisplayNames} = {
 	discordClient: new Client({ 
@@ -140,6 +143,9 @@ appContext.discordClient.once("clientReady", async () => {
 
 	await defaultConfigurationRefresh()
 
+	await rankedleStart().catch(err => logger.unknownError(err))
+	await birthdaysStart().catch(err => logger.unknownError(err))
+
 	appContext.hasStarted = true
 
 	logger.info(`Bot succesfully started! Took ${process.uptime().toFixed(2)}s`)
@@ -153,6 +159,7 @@ appContext.discordClient.on("messageCreate", (message) => {
 .on('interactionCreate', interaction => {
 	if(interaction.isChatInputCommand()) return handleCommand(interaction)
 	if(interaction.isAutocomplete()) return autocompleteHandler(interaction)
+	if(interaction.isButton()) return buttonHandler(interaction)
 }).on("guildMemberAdd", async (member) => {
 	guildMemberAddHandler(member)
 }).on("guildMemberRemove", async (member) => {

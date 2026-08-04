@@ -139,20 +139,22 @@ export interface ScoreSaberScore {
 	device: ScoreSaberDevice | null
 }
 
+export interface ScoreSaberLeaderboardMap {
+	id: number,
+	hash: string,
+	bsid: string | null,
+	songName: string,
+	songSubName: string,
+	songAuthorName: string,
+	levelAuthorName: string,
+	bpm: number,
+	coverUrl: string,
+	verified: boolean
+}
+
 export interface ScoreSaberLeaderboard {
 	id: number,
-	map: {
-		id: number,
-		hash: string,
-		bsid: string | null,
-		songName: string,
-		songSubName: string,
-		songAuthorName: string,
-		levelAuthorName: string,
-		bpm: number,
-		coverUrl: string,
-		verified: boolean
-	},
+	map: ScoreSaberLeaderboardMap,
 	difficulty: {
 		id: number,
 		difficulty: LevelDifficulties.Number,
@@ -270,4 +272,28 @@ export type ScoreSaberPlayersScores = {
 
 export type ScoresaberPlayersCount = {
 	count: number
+}
+
+export interface ScoreSaberMapLeaderboard {
+	id: number,
+	difficulty: LevelDifficulties.Number,
+	gameMode: string,
+	rawDifficulty: string,
+	maxScore: number,
+	totalScores: number,
+	dailyScores: number,
+	createdAt: string,
+	realm: ScoreSaberLeaderboard["realm"]
+}
+
+export interface ScoreSaberMap extends ScoreSaberLeaderboardMap {
+	totalScores: number,
+	dailyScores: number,
+	createdAt: string,
+	leaderboards: ScoreSaberMapLeaderboard[]
+}
+
+export type ScoreSaberMaps = {
+	data: ScoreSaberMap[],
+	metadata: ScoreSaberMetadata
 }

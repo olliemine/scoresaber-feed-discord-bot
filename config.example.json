@@ -147,6 +147,21 @@
 			"embedThumbnail": "scoresaber",
 			"embedURL": "scoresaber"
 		},
+		"rankedle": {
+			"channelId": "",
+			"countdownSeconds": 20,
+			"audioClipDuration": 5,
+			"extendedAudioClipDuration": 10,
+			"maxPointsPerGame": 5,
+			"waitBetweenRounds": 5,
+			"roundTimeLimit": 120,
+			"downloadTimeoutMS": 15000,
+			"embedColor": "#FF5733"
+		},
+		"birthdays": {
+			"channelId": "",
+			"announceHourUTC": 9
+		},
 		"disabling": []
 	},
 	"logger": {

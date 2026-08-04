@@ -87,7 +87,7 @@ async function playerBasicInputHandler(input: string, player: levelPlayer, map: 
 			return player.score.FC ? "FC" : player.score.misses === 0 ? "❌ FC" : `${player.score.misses} miss`
 
 		case "scorepp":
-			return map["isRanked"] ? player.score.PP.toFixed(2) : ""
+			return map["isRanked"] ? " (" + player.score.PP.toFixed(2) + "pp)" : ""
 		
 		default:
 			return ""
@@ -175,6 +175,9 @@ const stringToDecoded: embedDecodeFunction<Arguments> = async (input, dataArgume
 	
 			case "creationSince":
 				return `<t:${Math.floor(score.levelCreatedAt.getTime() / 1000)}:R>`
+
+			case "stars":
+				return map["isRanked"] ? " - " + map.stars.toString() + "★" : ""
 		}
 	}
 
@@ -288,7 +291,7 @@ const stringToDecoded: embedDecodeFunction<Arguments> = async (input, dataArgume
 				return dateFormats(args[2], player.date, getLanguage.defaultLocale)
 
 			case "HMD":
-				return score.hmdDevice
+				return player.HMD
 
 			case "scoreDifference":
 				if(oldPlayer == null) return ""

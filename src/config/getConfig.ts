@@ -71,7 +71,14 @@ export default function getConfig(): configType {
 	validate(c)
 	
 	if(validate.errors) {
-		console.log(`${chalk.bgRedBright("CONFIG VALIDATION ERRORS")}: ${validate.errors}`)
+		const errors = validate.errors as { instancePath?: string, message?: string, params?: object }[]
+
+		console.log(chalk.bgRedBright("CONFIG VALIDATION ERRORS"))
+
+		for(const error of errors) {
+			console.log(`  ${error.instancePath || "/"}: ${error.message} ${JSON.stringify(error.params ?? {})}`)
+		}
+
 		process.abort()
 	}
 

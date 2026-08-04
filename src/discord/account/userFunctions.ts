@@ -47,6 +47,12 @@ export function checkLevel(id: string, member: GuildMember): COMMAND_PERMISSIONS
 	return COMMAND_PERMISSIONS.BASE
 }
 
+export async function hasPermissionLevel(id: string, level: COMMAND_PERMISSIONS): Promise<boolean> {
+	const member = await discordIDtoMember(id)
+
+	return member ? checkLevel(member.user.id, member) >= level : false
+}
+
 async function stringToDecoded(input: string, dataArguments: dataArguments): Promise<string> {
 	const { scoresaberUser, discordMember, dataUser, newName } = dataArguments
 	

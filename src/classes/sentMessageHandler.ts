@@ -137,6 +137,14 @@ export default class SentMessageHandler<T extends CommandMessage = CommandMessag
 		return await this.success(options)
 	}
 
+	async defaultError(localMessage: languageString) {
+		return await this.error({ description: getLanguage.getDefault(localMessage) })
+	}
+
+	async defaultSuccess(localMessage: languageString) {
+		return await this.success({ description: getLanguage.getDefault(localMessage) })
+	}
+
 	async localesNormal(localMessage?: languageString, localTitle?: languageString, thumbnail?: string, color?: ColorResolvable) {
 		const options: EmbedOptions = {}
 		
