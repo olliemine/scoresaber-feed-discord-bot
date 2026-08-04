@@ -62,21 +62,10 @@ type RankUpdate = {
 }
 
 async function dataUserToUpdate(dataUser: user, updateProp: UserFeedChanges, matchFilter?: PipelineStage): Promise<RankUpdate> {
-	if(isRankFeedChange(updateProp)) {
-		const currentRank = dataUser[updateProp].value
-		const lastRank = dataUser[updateProp].lastFeed
+	const order = isRankFeedChange(updateProp) ? "ascending" : "descending"
 
-		return {
-			updateNum: dataUser[updateProp].value - dataUser[updateProp].lastFeed,
-			updateRank: lastRank - currentRank,
-			currentRank,
-			lastRank,
-			dataUser
-		}
-	}
-
-	const currentRank = await getRank(dataUser, `${updateProp}.value`, false, "descending", matchFilter)
-	const lastRank = await getRank(dataUser, `${updateProp}.lastFeed`, false, "descending", matchFilter)
+	const currentRank = await getRank(dataUser, `${updateProp}.value`, false, order, matchFilter)
+	const lastRank = await getRank(dataUser, `${updateProp}.lastFeed`, false, order, matchFilter)
 	
 	if(currentRank === null || lastRank === null) throw new Error(`getRank return null on user (${dataUser.scoresaberID})`)
 
