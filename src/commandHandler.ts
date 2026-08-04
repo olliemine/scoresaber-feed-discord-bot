@@ -1,6 +1,6 @@
 import { logger, DEBUG_LEVELS } from './logger.js'
 import chalk from "chalk"
-import { AutocompleteInteraction, ChatInputCommandInteraction, Colors, EmbedBuilder } from "discord.js"
+import { AutocompleteInteraction, ChatInputCommandInteraction, Colors, EmbedBuilder, MessageFlags } from "discord.js"
 import { commands } from "./commandGetter.js"
 import appContext from "./index.js"
 import getConfig from './config/getConfig.js'
@@ -35,18 +35,33 @@ export async function handleCommand(message: ChatInputCommandInteraction) {
 
 	if(!command) return
 
+	try {
+		await message.deferReply()
+	} catch(err) {
+		logger.unknownError(err)
+		return
+	}
+
 	const member = await discordIDtoMember(message.user.id)
 
 	const userLevel = member ? checkLevel(member.user.id, member) : COMMAND_PERMISSIONS.BASE
 
 	if(userLevel === COMMAND_PERMISSIONS.MASTER) return executeCommand(command, message)
-	
-	if(userLevel === COMMAND_PERMISSIONS.BASE && getConfig().commands.disableCommandsForBaseUsers === true) return
+
+	if(userLevel === COMMAND_PERMISSIONS.BASE && getConfig().commands.disableCommandsForBaseUsers === true) {
+		return await message.deleteReply().catch(err => logger.unknownError(err))
+	}
 
 	const sentMessage = new SentMessageHandler(message)
-	
+
 	if(userLevel <= COMMAND_PERMISSIONS.BASE && !checkChannels(message.channelId)) {
-		sentMessage.postOptions({ embeds: [new EmbedBuilder().setTitle(sentMessage.getLocalization("incorrectChannel"))], ephemeral: true })
+		await message.deleteReply().catch(err => logger.unknownError(err))
+
+		await message.followUp({
+			embeds: [new EmbedBuilder().setTitle(sentMessage.getLocalization("incorrectChannel"))],
+			flags: MessageFlags.Ephemeral
+		}).catch(err => logger.unknownError(err))
+
 		return
 	}
 		

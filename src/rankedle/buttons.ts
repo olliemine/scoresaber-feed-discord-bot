@@ -1,4 +1,4 @@
-import { ButtonInteraction } from "discord.js"
+import { ButtonInteraction, MessageFlags } from "discord.js"
 import { DiscordVariables } from "../classes/sentMessageHandler.js"
 import getLanguage from "../languages/lang.js"
 import * as embeds from "./embeds.js"
@@ -10,7 +10,7 @@ import { joinError, voteskipError } from "./validation.js"
 const localization = getLanguage.getDefault
 
 async function reply(interaction: ButtonInteraction, content: string) {
-	await interaction.reply({ content, ephemeral: true })
+	await interaction.reply({ content, flags: MessageFlags.Ephemeral })
 }
 
 async function handleJoin(interaction: ButtonInteraction) {
