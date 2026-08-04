@@ -88,7 +88,7 @@ async function playerBasicInputHandler(input: string, player: levelPlayer, map: 
 			return player.score.FC ? "FC" : player.score.misses === 0 ? "❌ FC" : `${player.score.misses} miss`
 
 		case "scorepp":
-			return map["isRanked"] ? " (" + player.score.PP.toFixed(2) + "pp)" : ""
+			return map["isRanked"] ? player.score.PP.toFixed(2) : ""
 		
 		default:
 			return ""
@@ -178,7 +178,7 @@ const stringToDecoded: embedDecodeFunction<Arguments> = async (input, dataArgume
 				return relativeTimestamp(score.levelCreatedAt)
 
 			case "stars":
-				return map["isRanked"] ? " - " + map.stars.toString() + "★" : ""
+				return map["isRanked"] ? map.stars.toString() : ""
 		}
 	}
 
