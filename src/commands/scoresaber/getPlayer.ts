@@ -96,7 +96,7 @@ const stringToDecoded: embedDecodeFunction<Arguments> = async (input, dataArgume
 		case "replaysWatched":
 			return getValueUndefinedHandler(scoresaberUser.stats.totalReplayViews)
 		case "topPlayPP":
-			return dataUser && dataUser.scoresaberTopPlay ? `${dataUser.scoresaberTopPlay.name} - ${dataUser.scoresaberTopPlay.pp}pp` : ""
+			return dataUser && dataUser.scoresaberTopPlay ? `${dataUser.scoresaberTopPlay.name} - ${numberWithCommas(parseFloat(dataUser.scoresaberTopPlay.pp.toFixed(2)))}pp` : ""
 		case "weekDifference":
 			return `${scoresaberUser.stats.rankChange > 0 ? "+" : ""}${scoresaberUser.stats.rankChange}`
 		case "serverTop1Count":
