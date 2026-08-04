@@ -16,7 +16,7 @@ const UPCOMING_LIMIT = 15
 const BIRTHDAY_COLOR = Colors.Gold
 
 function formatDate(day: number, month: number, locale: string) {
-	const date = new Date(Date.UTC(2000, month, day))
+	const date = new Date(Date.UTC(2000, month - 1, day))
 
 	return new Intl.DateTimeFormat(locale, {
 		day: "numeric",
