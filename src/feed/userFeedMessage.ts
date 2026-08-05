@@ -101,41 +101,43 @@ const stringToDecoded: embedDecodeFunction<Arguments> = async (
 ) => {
 	const { playerUpdate, snipedUpdate, snipedPlayers, updateProp } = dataArguments
 
+	input = input.toLowerCase()
 	let args = input.split("_")
 
-	if(args[0] === "Sniped" || args[0] === "Player") {
-		const selectedPlayerUpdate = args[0] === "Sniped" ? snipedUpdate : playerUpdate
+	if(args[0] === "sniped" || args[0] === "player") {
+		const selectedPlayerUpdate = args[0] === "sniped" ? snipedUpdate : playerUpdate
 		const selectedPlayer = selectedPlayerUpdate.dataUser
+		const pingKey = args[0] === "sniped" ? "doPingsSniped" : "doPingsPlayer"
 
 		if(args[1] === "scoresaber") return scoresaberRegexes(args[2], selectedPlayer["scoresaberID"], selectedPlayer["scoresaberName"]) ?? ""
 		if(args[1] === "country") return countryRegexes(args[2], getUserCountry(selectedPlayer)) ?? ""
 
 		switch(args[1]) {
 			case "name": {
-				if(!getConfig().database.players.feed[`doPings${args[0]}`]) return selectedPlayer["scoresaberName"]
+				if(!getConfig().database.players.feed[pingKey]) return selectedPlayer["scoresaberName"]
 				if(!selectedPlayer["discordIsInServer"] || !selectedPlayer["discordID"] || !selectedPlayer.configuration.doPingSnipe) return selectedPlayer["scoresaberName"]
 				const discordMember = await discordIDtoMember(selectedPlayer["discordID"])
 				if(!discordMember) return selectedPlayer["scoresaberName"]
 				return `<@${discordMember.user.id}>`
 			}
-			case "discordName":
+			case "discordname":
 				return selectedPlayer["discordName"] ? selectedPlayer["discordName"] : ""
-			case "currentRank":
+			case "currentrank":
 				return selectedPlayerUpdate.currentRank.toString() ?? ""
-			case "lastRank":
+			case "lastrank":
 				return selectedPlayerUpdate.lastRank.toString()
-			case "timeSet":
-			case "timeSince":
-			case "timeSetText":
-			case "timeSinceText":
+			case "timeset":
+			case "timesince":
+			case "timesettext":
+			case "timesincetext":
 				return dateFormats(args[1], selectedPlayer[updateProp].lastFeedDate, getLanguage.defaultLocale)
-			case "globalRank":
+			case "globalrank":
 				return selectedPlayer.scoresaberRank?.value?.toString() ?? ""
-			case "countryRank":
+			case "countryrank":
 				return selectedPlayer.scoresaberCountryRank?.value?.toString() ?? ""
 			case "variable":
 				return selectedPlayer[updateProp].value.toString()
-			case "lastVariable":
+			case "lastvariable":
 				return selectedPlayer[updateProp].lastFeed.toString()
 		}
 	}
@@ -143,12 +145,12 @@ const stringToDecoded: embedDecodeFunction<Arguments> = async (
 	let snipedPlayersEditable = snipedPlayers.slice()
 
 	switch(input) {
-		case "SnipedUsers":
+		case "snipedusers":
 			return snipedPlayersEditable.map(update => update.dataUser["scoresaberName"]).join(", ")
-		case "SnipedUsersExceptFirst":
+		case "snipedusersexceptfirst":
 			snipedPlayersEditable.shift()
 			return snipedPlayersEditable.map(update => update.dataUser["scoresaberName"]).join(", ")
-		case "Update_block":
+		case "updateblock":
 			return getCodeBlockOfChanges([...snipedPlayersEditable, playerUpdate], { showCurrentRank: true })
 	}
 
@@ -158,10 +160,10 @@ const stringToDecoded: embedDecodeFunction<Arguments> = async (
 const embedDecodePicture: embedDecodeFunction<Arguments> = async (pictureType, args) => {
 	const { playerUpdate, snipedUpdate } = args
 
-	switch(pictureType) {
-		case "PlayerProfilePicture":
+	switch(pictureType.toLowerCase()) {
+		case "playerprofilepicture":
 			return await getProfilePicture(playerUpdate.dataUser["scoresaberID"]) ?? ""
-		case "SnipedProfilePicture":
+		case "snipedprofilepicture":
 			return await getProfilePicture(snipedUpdate.dataUser["scoresaberID"]) ?? ""
 		default:
 			return ""

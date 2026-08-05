@@ -111,12 +111,13 @@ export function getRegexLexicon(
 	}
 
 	simpleRegexs.forEach(r => {
-		const regex = new RegExp(`{${r}}`, "g")
+		const regex = new RegExp(`{${r}}`, "gi")
 		checkStringsIndividual(r, regex)
 	})
 
 	complexRegexs.forEach(r => {
-		checkStringsIndividual(null, r)
+		const flags = r.flags.includes("i") ? r.flags : `${r.flags}i`
+		checkStringsIndividual(null, new RegExp(r.source, flags))
 	})
 	
 	if(!ifs) return {

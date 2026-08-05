@@ -16,20 +16,18 @@ import { averageTop1CountRate, averageTop1CountRateArr, countryRegexes, decodePe
 import { numberWithCommas } from "../../misc/util.js"
 import { getRank, matchMainCountriesUsers } from "../../db/filteredUsers.js"
 import { top1CountRate } from "../../db/levelPipelines.js"
-import { averageTop1CountRateRegex } from "../../regex/regexes.js"
+import { GetPlayerRegexes } from "../../regex/regexes.js"
 import { dataUserAutocomplete } from "../../discord/autocomplete/functions.js"
 import { COMMAND_PERMISSIONS } from "../../types/util.js"
 import { RegexMessage } from "../../types/config.js"
 
-const averageRankedAccuracyRegex = /({averageRankedAccuracy_(round|\d)})/g
-
-const COMPLEX_REGEXES = [averageRankedAccuracyRegex, averageTop1CountRateRegex]
-const SIMPLE_REGEXES = ["scoresaber_id", "scoresaber_name", "scoresaber_link", "discordName", "country_name", "country_code", "country_flag", "pp",
-"rank", "countryRank", "role", "banned", "inactive", "totalScore", "totalRankedScore", "totalPlayCount", "rankedPlayCount", 
-"replaysWatched", "topPlayPP", "serverTop1Count", "serverTop1RankedCount", "countryTop1Count",
-"countryTop1RankedCount", "weekDifference", "mainCountriesRank"]
-
-const regexLexiconData = getConfig().commands.getplayer !== undefined ? checkRegexOfMessage(getConfig().commands.getplayer as RegexMessage, "get", SIMPLE_REGEXES, COMPLEX_REGEXES, {ifs: true, every: true}) : null
+const regexLexiconData = getConfig().commands.getplayer !== undefined ? checkRegexOfMessage(
+	getConfig().commands.getplayer as RegexMessage,
+	"get",
+	GetPlayerRegexes.getAllBasic(),
+	GetPlayerRegexes.getAllComplex(),
+	{ ifs: true, every: true }
+) : null
 		
 const getValueUndefinedHandler = (value: any) => value != null ? value.toString() : ""
 
@@ -37,14 +35,15 @@ type Arguments = { scoresaberUser: AnyScoreSaberUserBody, dataUser?: user, disco
 
 const stringToDecoded: embedDecodeFunction<Arguments> = async (input, dataArguments) => {
 	const { scoresaberUser, dataUser } = dataArguments
+	input = input.toLowerCase()
 	let args = input.split("_")
 
-	if(input.startsWith("averageRankedAccuracy")) {
+	if(input.startsWith("averagerankedaccuracy")) {
 		args.shift()
 		return decodePercent(args as [string], scoresaberUser.stats.averageAccuracy, 14)
 	}
 
-	if(input.startsWith("averageTop1CountRate")) {
+	if(input.startsWith("averagetop1countrate")) {
 		args.shift()
 		if(!dataUser) return ""
 		return await averageTop1CountRate(
@@ -66,15 +65,15 @@ const stringToDecoded: embedDecodeFunction<Arguments> = async (input, dataArgume
 	}
 	
 	switch(input) {
-		case "discordName":
+		case "discordname":
 			return dataUser ? dataUser["discordName"] : ""
 		case "pp":
 			return numberWithCommas(parseFloat(scoresaberUser.stats.totalPP.toFixed(2)))
 		case "rank":
 			return numberWithCommas(dataUser?.scoresaberRank?.value || scoresaberUser.stats.rank)
-		case "countryRank":
+		case "countryrank":
 			return numberWithCommas(dataUser?.scoresaberCountryRank?.value || scoresaberUser.stats.countryRank)
-		case "mainCountriesRank":
+		case "maincountriesrank":
 			if(!dataUser) return ""
 			if(dataUser.mainCountriesRank?.value) return numberWithCommas(dataUser.mainCountriesRank.value)
 			const mainCountriesRank = await getRank(dataUser, "scoresaberLastPP.value", false, "descending", matchMainCountriesUsers())
@@ -85,39 +84,39 @@ const stringToDecoded: embedDecodeFunction<Arguments> = async (input, dataArgume
 			return scoresaberUser.banned.toString()
 		case "inactive":
 			return scoresaberUser.inactive.toString()
-		case "totalScore":
+		case "totalscore":
 			return getValueUndefinedHandler(scoresaberUser.stats.totalScore)
-		case "totalRankedScore":
+		case "totalrankedscore":
 			return getValueUndefinedHandler(scoresaberUser.stats.totalRankedScore)
-		case "totalPlayCount":
+		case "totalplaycount":
 			return getValueUndefinedHandler(scoresaberUser.stats.totalSubmittedPlays)
-		case "rankedPlayCount":
+		case "rankedplaycount":
 			return getValueUndefinedHandler(scoresaberUser.stats.totalPlayedRankedLeaderboards)
-		case "replaysWatched":
+		case "replayswatched":
 			return getValueUndefinedHandler(scoresaberUser.stats.totalReplayViews)
-		case "topPlayPP":
+		case "topplaypp":
 			return dataUser && dataUser.scoresaberTopPlay ? `${dataUser.scoresaberTopPlay.name} - ${numberWithCommas(parseFloat(dataUser.scoresaberTopPlay.pp.toFixed(2)))}pp` : ""
-		case "weekDifference":
+		case "weekdifference":
 			return `${scoresaberUser.stats.rankChange > 0 ? "+" : ""}${scoresaberUser.stats.rankChange}`
-		case "serverTop1Count":
+		case "servertop1count":
 			if(!dataUser) return ""
 
 			return dataUser.top1Multi.value.toString()
-		case "serverTop1RankedCount": {
+		case "servertop1rankedcount": {
 			if(!dataUser) return ""
 
 			const count = await top1CountRate(dataUser.scoresaberID, null, true)
 			
 			return count.toString()
 		}
-		case "countryTop1Count": {
+		case "countrytop1count": {
 			if(!dataUser) return ""
 
 			const count = await top1CountRate(dataUser.scoresaberID, getUserCountry(dataUser), false)
 			
 			return count.toString()
 		}	
-		case "countryTop1RankedCount": {
+		case "countrytop1rankedcount": {
 			if(!dataUser) return ""
 
 			const count = await top1CountRate(dataUser.scoresaberID, getUserCountry(dataUser), true)
@@ -133,7 +132,7 @@ const stringToDecoded: embedDecodeFunction<Arguments> = async (input, dataArgume
 const embedDecodeURL: embedDecodeFunction<Arguments> = (type, args) => {
 	const { scoresaberUser } = args
 
-	switch(type) {
+	switch(type.toLowerCase()) {
 		case "scoresaber":
 			return `https://scoresaber.com/u/${scoresaberUser.id}`
 	}
@@ -144,10 +143,10 @@ const embedDecodeURL: embedDecodeFunction<Arguments> = (type, args) => {
 const embedDecodePicture: embedDecodeFunction<Arguments> = (type, args) => {
 	const { scoresaberUser, discordUser } = args
 	
-	switch(type) {
+	switch(type.toLowerCase()) {
 		case "scoresaber":
 			return scoresaberUser.avatar
-		case "discordUser":
+		case "discorduser":
 			return discordUser ? discordUser.avatarURL() ?? "" : ""
 	}
 

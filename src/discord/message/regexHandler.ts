@@ -24,7 +24,7 @@ async function getButtons(embedButtons: embedButton[] | undefined, message: Rege
 		let buttons = []
 
 		for await(const buttonName of message.buttons) {
-			const buttonData = embedButtons.find(b => b.name === buttonName)
+			const buttonData = embedButtons.find(b => b.name.toLowerCase() === buttonName.toLowerCase())
 			if(!buttonData) continue
 			
 			const button = await buttonData.create(args)

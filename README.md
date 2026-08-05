@@ -333,8 +333,8 @@ Time tags = time of last feed update for that tracked value. For Player its basi
 Also (no `{}` braces in the condition side if used as ifs, but in the message itself they are normal tags):
 
 - `{SnipedUsers}` → `Morphites, olliemine`
-- `{SnipedUsersExceptFirst}`
-- `{Update_block}` asciidoc codeblock table of +/− changes
+- `{SnipedUsersExceptFirst}` → `olliemine`
+- `{UpdateBlock}` asciidoc codeblock table of +/− changes
 
 ### Player buttons / pictures
 - buttons: `scoresaberPlayer`, `scoresaberSniped`

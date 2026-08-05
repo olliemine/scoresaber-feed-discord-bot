@@ -2,6 +2,7 @@ import getConfig from "../config/getConfig.js"
 import { FeedsEnabled, getEventFromCombination, getEventRegexes } from "../regex/feedEventHandler.js"
 import { DEBUG_LEVELS, logger } from "../logger.js"
 import { RegexMessage } from "../types/config.js"
+import { UserFeedRegexes } from "../regex/regexes.js"
 
 export const USER_FEEDS = getConfig().database.players.feed.feeds
 
@@ -34,16 +35,13 @@ export const USER_FEEDS_ENABLED: FeedsEnabled = {
 	}
 }
 
-const PLAYER_REGEX = /{(Sniped|Player)_(name|scoresaber_(id|name|link)|discordName|country_(name|code|flag)|currentRank|lastRank|timeSet|timeSince|timeSetText|timeSinceText|globalRank|countryRank|variable|lastVariable)}/g
-const BASIC_REGEXES = ["SnipedUsers", "Update_block", "SnipedUsersExceptFirst"]
-
 export const userFeedEventRegexes = USER_FEEDS && getConfig().database.players.feed.feedMessages ?
 	getEventRegexes(
 		USER_FEEDS,
 		USER_FEEDS_ENABLED,
 		getConfig().database.players.feed.feedMessages as { [k: string]: RegexMessage },
-		BASIC_REGEXES,
-		[PLAYER_REGEX],
+		UserFeedRegexes.getAllBasic(),
+		UserFeedRegexes.getAllComplex(),
 		{ ifs: true, unique: false, every: true}
 	) : null
 

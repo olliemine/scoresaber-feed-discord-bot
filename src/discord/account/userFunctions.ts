@@ -56,8 +56,8 @@ export async function hasPermissionLevel(id: string, level: COMMAND_PERMISSIONS)
 async function stringToDecoded(input: string, dataArguments: dataArguments): Promise<string> {
 	const { scoresaberUser, discordMember, dataUser, newName } = dataArguments
 	
+	input = input.toLowerCase()
 	const args = input.split("_")
-	
 	
 	if(input.startsWith("country_")) {
 		if(!dataUser) return ""
@@ -66,13 +66,13 @@ async function stringToDecoded(input: string, dataArguments: dataArguments): Pro
 	}
 
 	switch(input) {
-		case "discordName":
+		case "discordname":
 			if(newName) return newName
 
 			if(dataUser && dataUser["discordServerNickname"]) return dataUser["discordServerNickname"]
 
 			return discordMember ? discordMember.user.username : ""
-		case "scoresaberName":
+		case "scoresabername":
 			if(newName) return newName
 			
 			if(dataUser && dataUser["discordServerNickname"]) return dataUser["discordServerNickname"]
@@ -80,11 +80,12 @@ async function stringToDecoded(input: string, dataArguments: dataArguments): Pro
 			if(scoresaberUser) return scoresaberUser.name
 			
 			if(dataUser) return dataUser.scoresaberName
+			return ""
 		case "rank":
 			if(!scoresaberUser) return ""
 
 			return (dataUser?.scoresaberRank?.value || scoresaberUser.stats.rank).toString()
-		case "countryRank":
+		case "countryrank":
 			if(dataUser?.scoresaberCountryRank?.value) return dataUser.scoresaberCountryRank.value.toString()
 
 			if(!scoresaberUser) return ""
