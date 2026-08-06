@@ -197,13 +197,14 @@ const embedButtons: embedButton<Arguments>[] = [{
 	}
 }]
 
-async function postPlayerFeed(
+export async function postPlayerFeed(
 	channelConfiguration: DefaultChannelFeedConfiguration,
 	event: string,
 	playerUpdate: RankUpdate,
 	snipedUpdate: RankUpdate,
 	snipedPlayers: RankUpdate[],
-	updateProp: UserFeedChanges
+	updateProp: UserFeedChanges,
+	options?: { channelIdOverride?: string, testFeedLabel?: string }
 ) {
 	const feedMessages = getConfig().database.players.feed.feedMessages
 	if(!feedMessages || !userFeedEventRegexes) return
@@ -212,7 +213,9 @@ async function postPlayerFeed(
 		playerUpdate: playerUpdate, snipedUpdate: snipedUpdate, snipedPlayers: snipedPlayers, updateProp: updateProp
 	}, stringToDecoded, {
 		embedButtons: embedButtons,
-		embedDecodePicture: embedDecodePicture
+		embedDecodePicture: embedDecodePicture,
+		channelIdOverride: options?.channelIdOverride,
+		testFeedLabel: options?.testFeedLabel
 	})
 }
 

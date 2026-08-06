@@ -413,7 +413,8 @@ export async function postLevelFeed(
 	playerA: levelPlayer,
 	playerB?: levelPlayer,
 	oldPlayerA?: levelPlayer,
-	oldPlayerB?: levelPlayer
+	oldPlayerB?: levelPlayer,
+	options?: { channelIdOverride?: string, testFeedLabel?: string }
 ) {
 	if(!levelFeedEventRegexes) return
 
@@ -424,6 +425,8 @@ export async function postLevelFeed(
 		stringToDecoded, {
 			embedButtons: embedButtons,
 			embedDecodePicture: embedDecodePicture,
+			channelIdOverride: options?.channelIdOverride,
+			testFeedLabel: options?.testFeedLabel
 		}
 	)
 }
