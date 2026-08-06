@@ -67,20 +67,11 @@ function ifStatementLoop(string: string, startIndex: number): regexLexiconIf | n
 
 	if(temp.indexLastIfStatement === -1) return null
 
-	for(let i = temp.indexStartWord; i < string.length; i++) {
-		const letter = string[i];
-		
-		if(whiteSpaceRegex.test(letter)) {
-			temp.indexLastWord = i - 1
-			temp.ifStatement = string.slice(temp.indexStartWord, temp.indexLastWord + 1)
-			break
-		}
-	}
+	const tagMatch = string.slice(temp.indexStartWord).match(/^[A-Za-z0-9_]+/)
+	if(!tagMatch) return null
 
-	if(temp.indexLastWord === -1) {
-		temp.indexLastWord = string.length - 1
-		temp.ifStatement = string.slice(temp.indexStartWord, temp.indexLastWord + 1)
-	}
+	temp.ifStatement = tagMatch[0]
+	temp.indexLastWord = temp.indexStartWord + tagMatch[0].length - 1
 
 	return temp
 }
@@ -282,7 +273,10 @@ export async function decodeStringAsync(
 			}
 			const oldLength = temp.length
 			const string = await stringToDecodedFunction(f.ifStatement, argumentsForDecodedFunction)
+			
+			//* If statement validity is checked by a falsy check https://developer.mozilla.org/en-US/docs/Glossary/Falsy 
 			const isDefined = !!string
+
 			if(isDefined) temp = temp.slice(0, f.indexStartIfStatement) + temp.slice(f.indexStartIfStatement + 1, f.indexLastIfStatement) + temp.slice(f.indexLastWord + 1)
 			else temp = temp.slice(0, f.indexStartIfStatement) + temp.slice(f.indexLastWord + 1)
 			

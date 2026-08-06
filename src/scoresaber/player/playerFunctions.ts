@@ -1,5 +1,5 @@
 import { ScoreSaberPlay } from "../../classes/scoreSaberPlay.js"
-import { UserCategories, isFromMainCountry } from "../../discord/account/userFunctions.js"
+import { UserCategories, getUserCountry, isFromMainCountry } from "../../discord/account/userFunctions.js"
 import { DEBUG_LEVELS, logger } from "../../logger.js"
 import { fetchWithRetry, getPromisesFetch, responseErrorString } from "../../misc/util.js"
 import { user } from "../../types/db.js"
@@ -12,7 +12,7 @@ export function checkUserCategory(scoresaberUser: AnyScoreSaberUserBody, dataUse
 export function checkUserCategory(scoresaberUser: AnyScoreSaberUserBody, dataUser?: user): UserCategories {
 	if(scoresaberUser?.banned) return "BannedUser"
 	if(scoresaberUser?.inactive) return "InactiveUser"
-	if(isFromMainCountry(dataUser?.unofficialCountry ?? scoresaberUser.country)) {
+	if(isFromMainCountry(dataUser ? getUserCountry(dataUser, scoresaberUser.country) : scoresaberUser.country)) {
 		if(dataUser && !dataUser.discordID) return "Unknown"
 		return "MainCountryUser"
 	}

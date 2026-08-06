@@ -95,9 +95,11 @@ async function stringToDecoded(input: string, dataArguments: dataArguments): Pro
 	return ""
 }
 
-export const isFromMainCountry = (country: string) => getConfig()["main-countries"].includes(country.toUpperCase()) 
+export const isFromMainCountry = (country?: string | null) =>
+	!!country && getConfig()["main-countries"].includes(country.toUpperCase())
 
-export const getUserCountry = (dataUser: user) => dataUser.unofficialCountry ?? dataUser.scoresaberCountry
+export const getUserCountry = (dataUser: user, fallback?: string) =>
+	dataUser.unofficialCountry ?? dataUser.scoresaberCountry ?? fallback
 
 type nameParameters = {scoresaberUser?: AnyScoreSaberUserBody, dataUser?: user, discordMember: GuildMember, newName?: string}
 
