@@ -32,9 +32,36 @@ class EventConstruct {
 		if(!this.event) throw new Error(`Undefined class parameters`)
 		
 		const combination = this.combine()
-		if(this.feedMessages[combination]) return combination
-		if(this.feedMessages[this.event.name]) return this.event.name
+		const candidates = this.getFeedMessageCandidates(combination)
+
+		for(const key of candidates) {
+			if(this.feedMessages[key]) return key
+		}
+
 		throw new Error("No FeedMessage for " + combination + " was found")
+	}
+
+	/** Ordered feedMessages keys to try for this event+context (first match wins). */
+	private getFeedMessageCandidates(combination: string): string[] {
+		if(this.event?.name === "TopPlay" && this.context) {
+			const topN = /^Top(\d+)$/.exec(this.context)
+			if(topN) {
+				const n = Number(topN[1])
+				// TopPlayTop1 is an alias of Personal — do not use TopPlayTop.
+				if(n === 1) {
+					return [combination, "TopPlayPersonal", this.event.name]
+				}
+				// TopPlayTopN (2–20): TopPlayTopN > TopPlayTop > TopPlayPersonal
+				return [combination, "TopPlayTop", "TopPlayPersonal"]
+			}
+
+			if(this.context === "Personal") {
+				// Personal only resolves via TopPlayPersonal (then bare TopPlay).
+				return ["TopPlayPersonal", this.event.name]
+			}
+		}
+
+		return [combination, this.event!.name]
 	}
 
 	getEventFromCombination(combination: string) {
@@ -81,7 +108,7 @@ function getContextforEvent(event: FeedsEnabled["events"][""], feedsEnabled: Fee
 	return feedsEnabled.context
 }
 
-function getAllEventswithContextString(feedsEnabled: FeedsEnabled): string[] {
+export function getAllEventswithContextString(feedsEnabled: FeedsEnabled): string[] {
 	let temp: string[] = []
 
 	for (let eventProp in feedsEnabled.events) {

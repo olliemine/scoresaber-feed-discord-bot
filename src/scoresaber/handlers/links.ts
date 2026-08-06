@@ -13,3 +13,6 @@ export const getRankedMapsPage = (page: number, limit: number, minStars?: number
 	(minStars != null ? `&minStars=${minStars}` : "") +
 	(maxStars != null ? `&maxStars=${maxStars}` : "")
 )
+export const getTopScorePageString = (id: string, limit: string, page = "1") => new URL(`${scoresaberAPI}/players/${id}/scores?limit=${limit.toString()}&sort=top&page=${page.toString()}&personalBest=true`)
+
+export const getScoreByIdString = (scoreId: string | number) => new URL(`${scoresaberAPI}/scores/${scoreId.toString()}`)

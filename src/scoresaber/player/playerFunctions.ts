@@ -5,7 +5,7 @@ import { fetchWithRetry, getPromisesFetch, responseErrorString } from "../../mis
 import { user } from "../../types/db.js"
 import { AnyScoreSaberUserBody, ScoreSaberPlayersProfile, ScoreSaberPlayersScores } from "../../types/scoresaber.js"
 import { idSearch } from "../handlers/getScoreSaberPlayer.js"
-import { getIDFullFindString, getScorePageString } from "../handlers/links.js"
+import { getIDFullFindString, getScorePageString, getTopScorePageString } from "../handlers/links.js"
 
 export function checkUserCategory(scoresaberUser: AnyScoreSaberUserBody): Exclude<UserCategories, "Unknown">
 export function checkUserCategory(scoresaberUser: AnyScoreSaberUserBody, dataUser: user): UserCategories
@@ -37,7 +37,7 @@ export async function getPlaysPages(id: string, pageCount: number) {
 		promises.push(getScorePageString(id, SCORES_PAGE_SIZE.toString(), i.toString()))
 	}
 
-	const data = await getPromisesFetch<ScoreSaberPlayersScores>(promises)
+	const data = await getPromisesFetch<ScoreSaberPlayersScores>(promises, 20)
 	if(!data) return null
 
 	const playerScores: ScoreSaberPlay[] = [...data.map(a => a.data)].flat().map(play => new ScoreSaberPlay(play, "V2_SCORE"))
@@ -52,6 +52,29 @@ export async function getPlaysPages(id: string, pageCount: number) {
 
 export async function getAllPlays(id: string, limit: number) {
 	return getPlaysPages(id, Math.ceil(limit / SCORES_PAGE_SIZE))
+}
+
+export async function getTopPlays(id: string, limit: number) {
+	if(limit <= 0) return []
+
+	const clampedLimit = Math.min(limit, 20)
+	const data = await getPromisesFetch<ScoreSaberPlayersScores>([
+		getTopScorePageString(id, clampedLimit.toString()),
+	])
+	if(!data) return null
+
+	const playerScores: ScoreSaberPlay[] = data.flatMap(a => a.data).map(play => new ScoreSaberPlay(play, "V2_SCORE"))
+
+	logger.debug(
+		`getTopPlays: received ${playerScores.length} top plays for ${id} (limit ${clampedLimit})`,
+		DEBUG_LEVELS.VARIABLE_DEBUG
+	)
+
+	return playerScores
+}
+
+export function isPlayInTopScores(score: ScoreSaberPlay, topScores: ScoreSaberPlay[]) {
+	return topScores.some(top => top.levelID === score.levelID)
 }
 
 export { SCORES_PAGE_SIZE }

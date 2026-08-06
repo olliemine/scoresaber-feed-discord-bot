@@ -170,7 +170,7 @@ const stringToDecoded: embedDecodeFunction<Arguments> = async (input, dataArgume
 				return map.difficultyInformation.modeName
 
 			case "ranked":
-				return map["isRanked"] ? "✅ Ranked" : "❌ Ranked"
+				return map.isRanked ? "✅" : ""
 
 			case "creationdate":
 				return fullTimestamp(score.levelCreatedAt)
@@ -267,6 +267,17 @@ const stringToDecoded: embedDecodeFunction<Arguments> = async (input, dataArgume
 				
 				return rank.toString()
 			}
+			case "rank":
+			case "countryrank": {
+				const dataUser = await userSchema.findOne({ scoresaberID: player.playerID })
+				const value = args[2] === "rank" ? dataUser?.scoresaberRank?.value : dataUser?.scoresaberCountryRank?.value
+				return value != null ? value.toString() : ""
+			}
+			case "leaderboardrank": {
+				if(isPlayerB) return ""
+				const index = map.leaderboard.findIndex(p => p.playerID === player.playerID)
+				return index === -1 ? "" : (index + 1).toString()
+			}
 			case "basescore":
 			case "modifiedscore":
 			case "basescorepercentage":
@@ -342,7 +353,7 @@ const stringToDecoded: embedDecodeFunction<Arguments> = async (input, dataArgume
 		}
 	}
 
-	logger.warn(`No decoding found for ${input}`)
+	logger.error(`No decoding found for ${input}`)
 	return ""
 }
 

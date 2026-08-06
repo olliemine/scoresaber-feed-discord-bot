@@ -40,6 +40,10 @@ export interface DefaultChannelFeedConfiguration {
 }
 export interface MapChannelFeedConfiguration extends DefaultChannelFeedConfiguration {
 	Types?: "both" | "unranked" | "ranked"
+	/** Inclusive lower bound on play PP (`score.pp >= minPP`). */
+	minPP?: number
+	/** Exclusive upper bound on play PP (`score.pp < maxPP`). */
+	maxPP?: number
 }
 interface Log {
 	"on-console": boolean

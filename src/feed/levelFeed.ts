@@ -10,6 +10,7 @@ import { postLevelFeed } from "./levelFeedMessage.js"
 import { PromiseOrNot } from "../types/util.js"
 import { ScoreSaberPlay } from "../classes/scoreSaberPlay.js"
 import { includesEvent, resolveFeedChannel } from "./feedCommon.js"
+import { getTopPlays, isPlayInTopScores } from "../scoresaber/player/playerFunctions.js"
 
 function getSnipedPlayer(leaderboard: levelPlayer[], oldLeaderboard: levelPlayer[], userLeaderboardIndex: number, userOldLeaderboardIndex: number) {
 	if(!leaderboard[userLeaderboardIndex + 1]) return null
@@ -56,6 +57,13 @@ function checkTypesFeed(channelConfiguration: MapChannelFeedConfiguration, score
 	if(type === "unranked") return !score.isRanked
 }
 
+/** minPP inclusive (>=), maxPP exclusive (<). */
+function passesPPGates(channelConfiguration: MapChannelFeedConfiguration, score: ScoreSaberPlay) {
+	if(channelConfiguration.minPP != null && score.pp < channelConfiguration.minPP) return false
+	if(channelConfiguration.maxPP != null && score.pp >= channelConfiguration.maxPP) return false
+	return true
+}
+
 function unknownCanSnipeUnknownsCheck(playerA: levelPlayer, playerB: levelPlayer) {
 	if(!playerB) return true
 
@@ -76,6 +84,8 @@ async function forEachFeedChannel(
 		} else if(options.score && !checkTypesFeed(channelConfiguration, options.score)) {
 			continue
 		}
+
+		if(options.score && !passesPPGates(channelConfiguration, options.score)) continue
 
 		const channel = resolveFeedChannel(channelConfiguration.Channel)
 		if(!channel) continue
@@ -264,41 +274,120 @@ export class LevelFeedUpdater {
 		})
 	}
 
-	static async runTopPlay(dataUser: user, map: level, score: ScoreSaberPlay) {
-		if(!LEVEL_FEEDS) return
-		if(!dataUser["scoresaberLastMap"]?.id || !isFromMainCountry(getUserCountry(dataUser))) return
-		if(dataUser.category === "Unknown" && !getConfig().database.maps.Unknowns.canHaveTopPlay) return
-		
-		const allBestRank = await getRank(dataUser, "scoresaberTopPlay.pp", true, "descending")
-		const countryBestRank = await getRank(dataUser, "scoresaberTopPlay.pp", true, "descending", matchUsersByCountry(getUserCountry(dataUser)))
+	/**
+	 * @returns true if at least one TopPlay message was posted for this score.
+	 * When true, map feeds (Top1 / Snipe / …) should be skipped for the same play.
+	 */
+	static async runTopPlay(
+		dataUser: user,
+		map: level,
+		score: ScoreSaberPlay,
+		options: {
+			isNewPersonalBest: boolean
+			/** Shared across a play batch. `plays` undefined = not fetched, null = fetch failed. */
+			topScoresCache?: { plays?: ScoreSaberPlay[] | null, limit: number }
+		} = { isNewPersonalBest: false }
+	): Promise<boolean> {
+		if(!LEVEL_FEEDS) return false
+		if(!dataUser["scoresaberLastMap"]?.id || !isFromMainCountry(getUserCountry(dataUser))) return false
+		if(dataUser.category === "Unknown" && !getConfig().database.maps.Unknowns.canHaveTopPlay) return false
 
-		await forEachFeedChannel({ skipUnrankedOnly: true }, async (channelConfiguration) => {
+		const { isNewPersonalBest } = options
+		const needsPersonalBestRank = isNewPersonalBest && LEVEL_FEEDS.some(channelConfiguration => {
+			if(!passesPPGates(channelConfiguration, score)) return false
+			if(!checkTypesFeed(channelConfiguration, score)) return false
+			return includesEvent(`${LEVEL_FEEDS_ENABLED.events.TopPlay.name}All`, channelConfiguration, getLevelEventFromCombination)
+				|| includesEvent(`${LEVEL_FEEDS_ENABLED.events.TopPlay.name}Country`, channelConfiguration, getLevelEventFromCombination)
+		})
+
+		const allBestRank = needsPersonalBestRank
+			? await getRank(dataUser, "scoresaberTopPlay.pp", true, "descending")
+			: null
+		const countryBestRank = needsPersonalBestRank
+			? await getRank(dataUser, "scoresaberTopPlay.pp", true, "descending", matchUsersByCountry(getUserCountry(dataUser)))
+			: null
+
+		const topScoresCache = options.topScoresCache ?? { limit: 0 }
+
+		async function ensureTopScores(limit: number) {
+			if(topScoresCache.plays === null) return null
+			if(topScoresCache.plays && topScoresCache.limit >= limit) return topScoresCache.plays
+
+			const fetched = await getTopPlays(dataUser.scoresaberID, limit)
+			if(!fetched) {
+				topScoresCache.plays = null
+				return null
+			}
+
+			topScoresCache.plays = fetched
+			topScoresCache.limit = limit
+			return topScoresCache.plays
+		}
+
+		let posted = false
+
+		await forEachFeedChannel({ score }, async (channelConfiguration) => {
 			let combination = ""
 
 			async function handlePostFeed() {
 				logger.debug("TopPlay Event", DEBUG_LEVELS.VARIABLE_DEBUG)
 				await postLevelFeed(channelConfiguration, combination, score, map, map.leaderboard[0])
-			}
-		
-			combination = `${LEVEL_FEEDS_ENABLED.events.TopPlay.name}All`
-			if(includesEvent(combination, channelConfiguration, getLevelEventFromCombination) && allBestRank === 1) {
-				await handlePostFeed()
-				return
-			}
-			
-			combination = `${LEVEL_FEEDS_ENABLED.events.TopPlay.name}Country`
-			if(includesEvent(combination, channelConfiguration, getLevelEventFromCombination) && 
-				isFromMainCountry(getUserCountry(dataUser)) &&
-				countryBestRank === 1
-			) {
-				await handlePostFeed()
-				return
+				posted = true
 			}
 
-			combination = `${LEVEL_FEEDS_ENABLED.events.TopPlay.name}Personal`
-			if(includesEvent(combination, channelConfiguration, getLevelEventFromCombination)) {
-				await handlePostFeed()
+			if(isNewPersonalBest) {
+				combination = `${LEVEL_FEEDS_ENABLED.events.TopPlay.name}All`
+				if(includesEvent(combination, channelConfiguration, getLevelEventFromCombination) && allBestRank === 1) {
+					await handlePostFeed()
+					return
+				}
+
+				combination = `${LEVEL_FEEDS_ENABLED.events.TopPlay.name}Country`
+				if(includesEvent(combination, channelConfiguration, getLevelEventFromCombination) && countryBestRank === 1) {
+					await handlePostFeed()
+					return
+				}
+
+				combination = `${LEVEL_FEEDS_ENABLED.events.TopPlay.name}Personal`
+				if(includesEvent(combination, channelConfiguration, getLevelEventFromCombination)) {
+					await handlePostFeed()
+					return
+				}
+
+				combination = `${LEVEL_FEEDS_ENABLED.events.TopPlay.name}Top1`
+				if(includesEvent(combination, channelConfiguration, getLevelEventFromCombination)) {
+					await handlePostFeed()
+					return
+				}
+			}
+
+			const topNContexts = Array.from({ length: 20 }, (_, i) => i + 1)
+				.filter(n => {
+					if(n === 1) return false
+					const combo = `${LEVEL_FEEDS_ENABLED.events.TopPlay.name}Top${n}`
+					return includesEvent(combo, channelConfiguration, getLevelEventFromCombination)
+				})
+				.sort((a, b) => a - b)
+
+			if(topNContexts.length) {
+				const topScores = await ensureTopScores(topNContexts[topNContexts.length - 1])
+				if(topScores) {
+					for(const n of topNContexts) {
+						combination = `${LEVEL_FEEDS_ENABLED.events.TopPlay.name}Top${n}`
+						if(isPlayInTopScores(score, topScores.slice(0, n))) {
+							await handlePostFeed()
+							return
+						}
+					}
+				}
 			}
 		})
+
+		return posted
 	}
+}
+
+/** Stable id for a play within a refresh batch (TopPlay vs map-feed priority). */
+export function playFeedKey(play: ScoreSaberPlay) {
+	return `${play.levelID}:${play.timeSet.getTime()}`
 }

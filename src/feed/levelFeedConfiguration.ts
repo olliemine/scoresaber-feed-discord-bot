@@ -36,7 +36,12 @@ export const LEVEL_FEEDS_ENABLED = {
 		TopPlay: {
 			name: "TopPlay",
 			type: "Score",
-			customContext: ["Personal", "Country", "All"],
+			customContext: [
+				"Personal",
+				"Country",
+				"All",
+				...Array.from({ length: 20 }, (_, i) => `Top${i + 1}`),
+			],
 		},
 	}
 }
@@ -51,9 +56,10 @@ export const levelFeedEventRegexes = getEventRegexes(
 )
 
 function ifOnlyAvailableInSnipeEvents(regex: string) {
-	if(regex.startsWith("snipe")) return true
-	if(regex.startsWith("player") || regex.startsWith("level")) return false
-	throw new Error("Unknown regex: " + regex)
+	const lowercase = regex.toLowerCase()
+	if(lowercase.startsWith("snipe")) return true
+	if(lowercase.startsWith("player") || lowercase.startsWith("level")) return false
+	throw new Error("Unknown regex: " + lowercase)
 }
 
 if(levelFeedEventRegexes) for(let eventProp in levelFeedEventRegexes.events) {

@@ -6,7 +6,7 @@ export class LevelFeedRegexes {
 		"modifiedScorePercentage", "score", "scorePercentage", "modifiers", "missCount", "isFC", "misses", "scorePP", "scoreWeightedPP", "timeSet",
 		"timeSince", "HMD", "timeSetText", "timeSinceText", "oldBaseScore", "oldModifiedScore", "oldBaseScorePercentage", "oldModifiedScorePercentage",
 		"oldScore", "oldScorePercentage", "oldModifiers", "oldMissCount", "oldIsFC", "oldMisses", "oldScorePP", "oldTimeSet", "oldTimeSince", "oldTimeSetText",
-		"oldTimeSinceText", "scoreDifference", "scoreDifferencePercentage"
+		"oldTimeSinceText", "scoreDifference", "scoreDifferencePercentage", "rank", "countryRank", "leaderboardRank"
 	] as const
 
 	private static readonly LEVEL_PROPERTIES = [

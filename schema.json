@@ -107,7 +107,12 @@
 		},
 		"mapFeeds": {
 			"type": "string",
-			"pattern": "^((Top1|NewMap|NewPlay|BetterPlay|BetterTopPlay|Snipe)(All|MainCountries)?|TopPlay(Personal|Country|All)?)$"
+			"pattern": "^((Top1|NewMap|NewPlay|BetterPlay|BetterTopPlay|Snipe)(All|MainCountries)?|TopPlay(Personal|Country|All|Top([1-9]|1[0-9]|20)))$"
+		},
+		"mapFeedMessages": {
+			"type": "string",
+			"description": "feedMessages keys. Includes TopPlayTop (covers all TopPlayTopN) and bare TopPlay.",
+			"pattern": "^((Top1|NewMap|NewPlay|BetterPlay|BetterTopPlay|Snipe)(All|MainCountries)?|TopPlay(Personal|Country|All|Top([1-9]|1[0-9]|20)?))$"
 		},
 		"playerFeeds": {
 			"type": "string",
@@ -139,6 +144,16 @@
 					"type": "string",
 					"enum": ["both", "unranked", "ranked"],
 					"default": "both"
+				},
+				"minPP": {
+					"type": "number",
+					"minimum": 0,
+					"description": "Inclusive minimum play PP for this channel entry (score.pp >= minPP)."
+				},
+				"maxPP": {
+					"type": "number",
+					"minimum": 0,
+					"description": "Exclusive maximum play PP for this channel entry (score.pp < maxPP)."
 				}
 			},
 			"required": ["Channel", "Feeds"],
@@ -553,7 +568,7 @@
 								"feedMessages": {
 									"type": "object",
 									"propertyNames": {
-										"$ref": "#/definitions/mapFeeds"
+										"$ref": "#/definitions/mapFeedMessages"
 									},
 									"additionalProperties": {
 										"$ref": "#/definitions/regexMessage"
