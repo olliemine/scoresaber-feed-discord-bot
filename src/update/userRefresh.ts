@@ -93,27 +93,30 @@ export async function userRefresh(
 
 	register.debug.addText(`User ${scoresaberUser.name} start`, 0)
 
-	let dataUserChanges = { ...dataUser }
+	const plainDataUser = (dataUser as { toObject?: () => user }).toObject?.() ?? dataUser
+	let dataUserChanges = { ...plainDataUser }
 
 	let change: keyof user
 
 	change = "scoresaberName"
-	if(dataUser[change] !== scoresaberUser.name) {
+	if(plainDataUser[change] !== scoresaberUser.name) {
 		register.addChange(change, scoresaberUser.name, "playerName")
 		dataUserChanges[change] = scoresaberUser.name
 		updateName = true
 	}
 	
-	const previousCountry = getUserCountry(dataUser)
+	const previousCountry = getUserCountry(plainDataUser, scoresaberUser.country)
 
 	change = "scoresaberCountry"
-	if(dataUser[change] !== scoresaberUser.country) {
-		register.addChange(change, scoresaberUser.country, dataUser.unofficialCountry ? false : "country")
+	if(plainDataUser[change] !== scoresaberUser.country) {
+		register.addChange(change, scoresaberUser.country, plainDataUser.unofficialCountry ? false : "country")
 		dataUserChanges[change] = scoresaberUser.country
 		updateName = true
+	} else if(!getUserCountry(dataUserChanges, scoresaberUser.country) && scoresaberUser.country) {
+		dataUserChanges[change] = scoresaberUser.country
 	}
 
-	const countryChanged = previousCountry !== getUserCountry(dataUserChanges)
+	const countryChanged = previousCountry !== getUserCountry(dataUserChanges, scoresaberUser.country)
 
 	change = "scoresaberIsActive"
 	if(dataUser[change] !== scoresaberActive) {
@@ -174,7 +177,7 @@ export async function userRefresh(
 		delete register.changes["scoresaberLastPP.value"]
 	}
 
-	if(isFromMainCountry(getUserCountry(dataUserChanges))) {
+	if(isFromMainCountry(getUserCountry(dataUserChanges, scoresaberUser.country))) {
 		const regionRank = await getRank(dataUserChanges, "scoresaberLastPP.value", false, "descending", matchMainCountriesUsers())
 		if(regionRank !== null && (dataUserChanges.mainCountriesRank?.value ?? 0) !== regionRank) {
 			register.addChange("mainCountriesRank.value", regionRank, false)

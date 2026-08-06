@@ -11,28 +11,28 @@ export type averageTop1CountRateArr = [("server" | "country"), (number | "rounde
 export async function averageTop1CountRate(args: averageTop1CountRateArr, totalPlayedCount: number, rankedTotalPlayedCount: number, dataUser: user): Promise<string>
 export async function averageTop1CountRate(args: averageTop1CountRateArr, totalPlayedCount: number, rankedTotalPlayedCount: number, id: string, country: string): Promise<string>
 export async function averageTop1CountRate(args: averageTop1CountRateArr, totalPlayedCount: number, rankedTotalPlayedCount: number, idOrDataUser: string | user, country?: string): Promise<string> {		
-	const context = args[0]
-	const display = args[1]
-	const ranked = args[2] === "ranked" ? true : false
+	const context = String(args[0]).toLowerCase()
+	const display = String(args[1]).toLowerCase()
+	const ranked = String(args[2] ?? "").toLowerCase() === "ranked"
 
 	const id = typeof idOrDataUser === "string" ? idOrDataUser : idOrDataUser.scoresaberID
 	country = typeof idOrDataUser === "string" ? country : getUserCountry(idOrDataUser)
 
 	const count = await top1CountRate(id, country && context === "country" ? country : null, ranked)
 	const totalCount = ranked ? rankedTotalPlayedCount : totalPlayedCount
-	
+
 	if(display === "ratio") return `${count} of ${totalCount}`
 
 	const percentage = (count / totalCount) * 100
 
 	if(display === "rounded") return Math.round(percentage).toString()
-	if(+display) return percentage.toFixed(display > 20 ? 20 : display)
+	if(+display) return percentage.toFixed(+display > 20 ? 20 : +display)
 	return ""
 }
 
-export function decodePercent(args: [("round" | string)], num: number, maxValue = 8) {	
-	const display = args[0]
-	
+export function decodePercent(args: [("round" | string)], num: number, maxValue = 8) {
+	const display = String(args[0]).toLowerCase()
+
 	if(!display || !num) return "."
 	if(+display) {
 		const displayNum = parseInt(display)
@@ -59,7 +59,7 @@ export function dateFormats(type: string, date: Date, locale: languages): string
 }
 
 export function scoresaberRegexes(type: string, id: string, name: string) {
-	switch(type) {
+	switch(type.toLowerCase()) {
 		case "id":
 			return id
 		case "name":
@@ -73,8 +73,8 @@ export function scoresaberRegexes(type: string, id: string, name: string) {
 
 export function countryRegexes(type: string, countryCode: string) {
 	if(!countryCode) return ""
-	
-	switch(type) {
+
+	switch(type.toLowerCase()) {
 		case "name":
 			return appContext.regionNames.of(countryCode) ?? ""
 		case "code":

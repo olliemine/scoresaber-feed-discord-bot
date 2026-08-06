@@ -270,6 +270,8 @@ export type ScoreSaberPlayersScores = {
 	metadata: ScoreSaberMetadata
 }
 
+export type ScoreSaberScoreByIdResponse = ScoreSaberPlayersScoreData
+
 export type ScoresaberPlayersCount = {
 	count: number
 }

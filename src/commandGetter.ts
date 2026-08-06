@@ -18,6 +18,8 @@ import aLogoutCommand from "./commands/admin/alogout.js"
 import changeCountryCommand from "./commands/admin/changeCountry.js"
 import aMultiLoginCommand from "./commands/admin/aMultiLogin.js"
 import resetPlaysNumbersCommand from "./commands/temp_fix/resetPlaysNumbers.js"
+import testfeedCommand from "./commands/master/testfeed.js"
+import migrateScoreIdsCommand from "./commands/master/migrateScoreIds.js"
 import helpCommand from "./commands/misc/help.js"
 import birthdayCommand from "./commands/misc/birthdays.js"
 import rankedleCommand from "./commands/rankedle/rankedle.js"
@@ -60,6 +62,8 @@ async function start() {
 		changeCountryCommand,
 		aMultiLoginCommand,
 		resetPlaysNumbersCommand,
+		testfeedCommand,
+		migrateScoreIdsCommand,
 		helpCommand,
 		birthdayCommand,
 		rankedleCommand

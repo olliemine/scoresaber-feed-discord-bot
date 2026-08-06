@@ -17,6 +17,8 @@ interface getRegexMessageOptions {
 	embedButtons?: embedButton[],
 	embedDecodePicture?: embedDecodeFunction,
 	embedDecodeURL?: embedDecodeFunction,
+	channelIdOverride?: string,
+	testFeedLabel?: string
 }
 
 async function getButtons(embedButtons: embedButton[] | undefined, message: RegexMessage, args: any) {
@@ -24,7 +26,7 @@ async function getButtons(embedButtons: embedButton[] | undefined, message: Rege
 		let buttons = []
 
 		for await(const buttonName of message.buttons) {
-			const buttonData = embedButtons.find(b => b.name === buttonName)
+			const buttonData = embedButtons.find(b => b.name.toLowerCase() === buttonName.toLowerCase())
 			if(!buttonData) continue
 			
 			const button = await buttonData.create(args)
@@ -148,11 +150,12 @@ export async function postFeed<T>(
 	eventData: EventRegexes,
 	decodeStringArguments: T,
 	stringToDecoded: embedDecodeFunction<T>,
-	options: getRegexMessageOptions
+	options: getRegexMessageOptions = {}
 ) {	
-	const channel = appContext.server?.channels.cache.get(channelConfiguration.Channel)
+	const channelId = options.channelIdOverride ?? channelConfiguration.Channel
+	const channel = appContext.server?.channels.cache.get(channelId)
 	
-	if(!channel) throw new Error(`Discord Channel (${channelConfiguration.Channel}) was not found in server ${getConfig()["server-id"]}`)
+	if(!channel) throw new Error(`Discord Channel (${channelId}) was not found in server ${getConfig()["server-id"]}`)
 	
 	const feedMessageProperty = eventData.events[event].getFeedMessageProperty()
 	const feedMessage = feedMessages[feedMessageProperty]
@@ -160,7 +163,14 @@ export async function postFeed<T>(
 
 	const messageObject = await getRegexMessage(feedMessage, regexLexicon, decodeStringArguments, stringToDecoded, options)
 
-	if(channel.type !== ChannelType.GuildText) throw new Error(`Discord Channel (${channelConfiguration.Channel}) is not a GUILD_TEXT`)
+	if(channel.type !== ChannelType.GuildText) throw new Error(`Discord Channel (${channelId}) is not a GUILD_TEXT`)
+
+	if(options.testFeedLabel && "embeds" in messageObject && messageObject.embeds[0]) {
+		const existing = messageObject.embeds[0].data.footer?.text
+		messageObject.embeds[0].setFooter({
+			text: existing ? `${options.testFeedLabel} · ${existing}` : options.testFeedLabel
+		})
+	}
 	
 	return await channel.send(messageObject)
 }

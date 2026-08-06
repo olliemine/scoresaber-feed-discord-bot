@@ -91,7 +91,7 @@ async function handleSaveStatus(dataUser: user): Promise<{
 			updateUser: true,
 			updateLevelsUser: false,
 			appliedChanges: true,
-			newUser: newUser
+			newUser: newUser.toObject()
 		}
 	}
 

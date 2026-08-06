@@ -94,6 +94,16 @@
 					"Channel": "YOUR_MAP_FEED_CHANNEL_ID",
 					"Feeds": ["Top1MainCountries", "BetterTopPlayMainCountries"],
 					"Types": "both"
+				}, {
+					"Channel": "YOUR_MAP_FEED_CHANNEL_ID",
+					"Feeds": ["TopPlayTop8"],
+					"minPP": 500,
+					"Types": "ranked"
+				}, {
+					"Channel": "YOUR_MAP_FEED_CHANNEL_ID",
+					"Feeds": ["TopPlayPersonal"],
+					"maxPP": 500,
+					"Types": "ranked"
 				}],
 				"feedMessages": {
 					"Top1": {
@@ -117,6 +127,30 @@
 						"embedImage": "MapCoverPicture",
 						"embedColor": {
 							"value": "#ec0042",
+							"type": "color"
+						}
+					},
+					"TopPlayPersonal": {
+						"type": "embed",
+						"embedTitle": "{Player_A_name} set a new top play · {Player_A_scorePP}pp",
+						"embedDescription": "**{Level_songName}** ({Level_difficultyFormated}) — {Player_A_baseScorePercentage}%",
+						"buttons": ["beatsaver", "scoresaber", "scoresaberPlayerA"],
+						"embedThumbnail": "PlayerAProfilePicture",
+						"embedImage": "MapCoverPicture",
+						"embedColor": {
+							"value": "#9b59b6",
+							"type": "color"
+						}
+					},
+					"TopPlayTop": {
+						"type": "embed",
+						"embedTitle": "{Player_A_name} set a top play · {Player_A_scorePP}pp",
+						"embedDescription": "**{Level_songName}** ({Level_difficultyFormated}) — {Player_A_baseScorePercentage}%",
+						"buttons": ["beatsaver", "scoresaber", "scoresaberPlayerA"],
+						"embedThumbnail": "PlayerAProfilePicture",
+						"embedImage": "MapCoverPicture",
+						"embedColor": {
+							"value": "#8e44ad",
 							"type": "color"
 						}
 					}

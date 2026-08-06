@@ -119,16 +119,17 @@ type Arguments = {
 }
 
 const stringToDecoded: embedDecodeFunction<Arguments> = async (input, dataArguments) => {
+	input = input.toLowerCase()
 	const args = input.split("_")
 	const { score, playerA, playerB, map, oldPlayerA, oldPlayerB } = dataArguments
 	
-	if(args[0] === "Level") {
+	if(args[0] === "level") {
 		const arg = args[1]
 		switch(arg) {
-			case "scoresaberLink":
+			case "scoresaberlink":
 				return getScoresaberLink(map)
 			
-			case "beatsaverLink":
+			case "beatsaverlink":
 				return await getBeatsaverLink(map)
 
 			case "code":
@@ -141,40 +142,40 @@ const stringToDecoded: embedDecodeFunction<Arguments> = async (input, dataArgume
 				}
 				return map.code ? map.code : ""
 
-			case "songName":
+			case "songname":
 				return score.songName
 
-			case "songSubName":
+			case "songsubname":
 				return score.songSubName
 
-			case "songAuthorName":
+			case "songauthorname":
 				return score.songAuthorName
 
-			case "mapperName":
+			case "mappername":
 				return score.levelAuthorName
 
 			case "difficulty":
 				return LevelDifficulties.Array.find(l => l.Number === map.difficultyInformation.difficultyNum)?.FullName ?? "bleh"
 
-			case "difficultyFormated":
+			case "difficultyformated":
 				return LevelDifficulties.Array.find(l => l.Number === map.difficultyInformation.difficultyNum)?.FullNameFormated ?? "bleh"
 
-			case "difficultyTiny":
+			case "difficultytiny":
 				return LevelDifficulties.Array.find(l => l.Number === map.difficultyInformation.difficultyNum)?.SmallerName ?? "bleh"
 
-			case "difficultyTiniest":
+			case "difficultytiniest":
 				return LevelDifficulties.Array.find(l => l.Number === map.difficultyInformation.difficultyNum)?.SmallestName ?? "bleh"
 
-			case "gameMode":
+			case "gamemode":
 				return map.difficultyInformation.modeName
 
 			case "ranked":
-				return map["isRanked"] ? "✅ Ranked" : "❌ Ranked"
+				return map.isRanked ? "✅" : ""
 
-			case "creationDate":
+			case "creationdate":
 				return fullTimestamp(score.levelCreatedAt)
 	
-			case "creationSince":
+			case "creationsince":
 				return relativeTimestamp(score.levelCreatedAt)
 
 			case "stars":
@@ -182,14 +183,14 @@ const stringToDecoded: embedDecodeFunction<Arguments> = async (input, dataArgume
 		}
 	}
 
-	if(args[0] === "Snipe") {
+	if(args[0] === "snipe") {
 		if(!playerB) return ""
 
 		switch(args[1]) {
-			case "differenceScore":
+			case "differencescore":
 				return (playerA.score.modifiedScore - playerB.score.modifiedScore).toString()
 
-			case "differenceScorePercentage":
+			case "differencescorepercentage":
 				let usingMap: level
 			
 				if(!map.maxScore) {
@@ -211,19 +212,20 @@ const stringToDecoded: embedDecodeFunction<Arguments> = async (input, dataArgume
 		}
 	}
 
-	if(args[0] === "Player") {
-		const player = args[1] === "A" ? playerA : playerB
-		const oldPlayer = args[1] === "A" ? oldPlayerA : oldPlayerB
+	if(args[0] === "player") {
+		const playerSide = args[1] === "a" ? "A" : "B"
+		const player = playerSide === "A" ? playerA : playerB
+		const oldPlayer = playerSide === "A" ? oldPlayerA : oldPlayerB
 
 		if(!player) {
 			logger.warn(`Player B not found. It is recomended to check if there is a regex in a Score event, Player B regexes are only enabled for Snipe events`)
 			return ""
 		}
 
-		const isPlayerB = args[1] === "A" ? false : true
+		const isPlayerB = playerSide === "B"
 
 		switch(args[2]) {
-			case "averageTop1CountRate": {
+			case "averagetop1countrate": {
 				const scoresaberUser = await idSearch(player.playerID, false)
 
 				if(!scoresaberUser.status) return "API ERROR"
@@ -239,11 +241,11 @@ const stringToDecoded: embedDecodeFunction<Arguments> = async (input, dataArgume
 			case "country":
 				return countryRegexes(args[3], player.country)
 
-			case "ID":
+			case "id":
 				return player.playerID
 			
 			case "name": {
-				if(!getConfig().database.maps.feed[`doPingsPlayer${args[1] as "A" | "B"}`]) return player.playerName
+				if(!getConfig().database.maps.feed[`doPingsPlayer${playerSide}`]) return player.playerName
 				
 				const dataUser = await userSchema.findOne({ "scoresaberID": player.playerID })
 				
@@ -258,47 +260,58 @@ const stringToDecoded: embedDecodeFunction<Arguments> = async (input, dataArgume
 			case "link":
 				return `https://scoresaber.com/u/${player.playerID}`
 
-			case "databaseRank": {
+			case "databaserank": {
 				const rank = await getRank(player.playerID, "scoresaberLastPP.value", false)
 				
 				if(rank === null) return ""
 				
 				return rank.toString()
 			}
-			case "baseScore":
-			case "modifiedScore":
-			case "baseScorePercentage":
-			case "modifiedScorePercentage":
+			case "rank":
+			case "countryrank": {
+				const dataUser = await userSchema.findOne({ scoresaberID: player.playerID })
+				const value = args[2] === "rank" ? dataUser?.scoresaberRank?.value : dataUser?.scoresaberCountryRank?.value
+				return value != null ? value.toString() : ""
+			}
+			case "leaderboardrank": {
+				if(isPlayerB) return ""
+				const index = map.leaderboard.findIndex(p => p.playerID === player.playerID)
+				return index === -1 ? "" : (index + 1).toString()
+			}
+			case "basescore":
+			case "modifiedscore":
+			case "basescorepercentage":
+			case "modifiedscorepercentage":
 			case "score":
-			case "scorePercentage":
+			case "scorepercentage":
 			case "modifiers":			
-			case "missCount":
-			case "isFC":			
+			case "misscount":
+			case "isfc":			
 			case "misses":
-			case "scorePP":
+			case "scorepp":
 				return await playerBasicInputHandler(args[2], player, map)
 
-			case "scoreWeightedPP": {
+			case "scoreweightedpp": {
 				if(!map["isRanked"]) return ""
 				
 				if(!isPlayerB) return (player.score.PP * score.weight).toString()
 				
 				return ""	
 			}
-			case "timeSet":
-			case "timeSince":
-			case "timeSetText":
-			case "timeSinceText":
+			case "timeset":
+			case "timesince":
+			case "timesettext":
+			case "timesincetext":
 				return dateFormats(args[2], player.date, getLanguage.defaultLocale)
 
-			case "HMD":
+			case "hmd":
 				return player.HMD
 
-			case "scoreDifference":
+			case "scoredifference":
 				if(oldPlayer == null) return ""
 				return (getScore(player, map.positiveModifiers) - getScore(oldPlayer, map.positiveModifiers)).toString()
 
-			case "scoreDifferencePercentage":
+			case "scoredifferencepercentage":
 				if(oldPlayer == null) return ""
 
 				if(!map.maxScore) {
@@ -317,30 +330,30 @@ const stringToDecoded: embedDecodeFunction<Arguments> = async (input, dataArgume
 					map.maxScore	
 				)
 
-			case "oldBaseScore":
-			case "oldModifiedScore":
-			case "oldBaseScorePercentage":
-			case "oldModifiedScorePercentage":
-			case "oldScore":
-			case "oldScorePercentage":
-			case "oldModifiers":			
-			case "oldMissCount":
-			case "oldIsFC":			
-			case "oldMisses":
-			case "oldScorePP":
+			case "oldbasescore":
+			case "oldmodifiedscore":
+			case "oldbasescorepercentage":
+			case "oldmodifiedscorepercentage":
+			case "oldscore":
+			case "oldscorepercentage":
+			case "oldmodifiers":			
+			case "oldmisscount":
+			case "oldisfc":			
+			case "oldmisses":
+			case "oldscorepp":
 				if(oldPlayer == null) return ""
 				return playerBasicInputHandler(args[2].substring(3), oldPlayer, map)
 
-			case "oldTimeSet":
-			case "oldTimeSince":
-			case "oldTimeSetText":
-			case "oldTimeSinceText":
+			case "oldtimeset":
+			case "oldtimesince":
+			case "oldtimesettext":
+			case "oldtimesincetext":
 				if(oldPlayer == null) return ""
 				return dateFormats(args[2].substring(3), oldPlayer.date, getLanguage.defaultLocale)
 		}
 	}
 
-	logger.warn(`No decoding found for ${input}`)
+	logger.error(`No decoding found for ${input}`)
 	return ""
 }
 
@@ -380,12 +393,12 @@ const embedButtons: embedButton<Arguments>[] = [{
 const embedDecodePicture: embedDecodeFunction<Arguments> = async (pictureType, args) => {
 	const { playerA, playerB, score } = args
 
-	switch(pictureType) {
-		case "PlayerAProfilePicture":
+	switch(pictureType.toLowerCase()) {
+		case "playeraprofilepicture":
 			return await getProfilePicture(playerA.playerID) ?? ""
-		case "PlayerBProfilePicture":
+		case "playerbprofilepicture":
 			return playerB ? await getProfilePicture(playerB.playerID) ?? "" : ""
-		case "MapCoverPicture":
+		case "mapcoverpicture":
 			return score.coverImage
 		default:
 			return ""
@@ -400,7 +413,8 @@ export async function postLevelFeed(
 	playerA: levelPlayer,
 	playerB?: levelPlayer,
 	oldPlayerA?: levelPlayer,
-	oldPlayerB?: levelPlayer
+	oldPlayerB?: levelPlayer,
+	options?: { channelIdOverride?: string, testFeedLabel?: string }
 ) {
 	if(!levelFeedEventRegexes) return
 
@@ -411,6 +425,8 @@ export async function postLevelFeed(
 		stringToDecoded, {
 			embedButtons: embedButtons,
 			embedDecodePicture: embedDecodePicture,
+			channelIdOverride: options?.channelIdOverride,
+			testFeedLabel: options?.testFeedLabel
 		}
 	)
 }

@@ -2,7 +2,7 @@
 
 Customizable Discord bot for local Beat Saber servers. Tracks ScoreSaber players/maps, posts map + player feeds, handles login/roles, playlists, etc.
 
-This README is a baseline, not the finished docs. A lot of the old notebook stuff was outdated so this was checked against the current code/`schema.json`.
+This README is a baseline, not the finished docs.
 
 ---
 
@@ -114,7 +114,7 @@ Behaviour of unknowns (players from `main-countries` who arent in the discord / 
 
 - **searched**: Whether unknowns should be map searched. If true they get searched/logged and show on leaderboards. Note: options below are mostly about **feed messages**, the actual stored leaderboard still has the correct people
 - **findUntilNotUnknown**: When looking for who got sniped, if the person below is Unknown and `canBeSniped` is false, keep walking down the leaderboard until a non-unknown (or stop if this is false)
-- **canHaveTopPlay**: Whether unknowns can fire TopPlay (Personal / Country / All)
+- **canHaveTopPlay**: Whether unknowns can fire TopPlay (Personal / TopN / Country / All)
 - **canBeSniped**: Whether unknowns can be PlayerB in a snipe (Top1 / Snipe)
 - **canSnipe**: Whether unknowns can be PlayerA and snipe someone
 - **canSnipeUnknowns**: Whether unknowns can snipe eachother (credit Hexi)
@@ -140,11 +140,38 @@ Under `database.maps.feed`:
 ## ChannelMapFeedConfiguration
 Object (or array of them) in `maps.feed.feeds`:
 
-- **Channel**: discord channel id. Dont repeat the same channel object as another entry carelessly
+- **Channel**: discord channel id. Same channel id can appear in multiple entries (e.g. different PP gates / feeds)
 - **Feeds**: `"all"` or an array of feed strings, see [FeedsEnabled](#feedsenabled)
 - **Types**: (optional, default `"both"`) `"ranked"` | `"unranked"` | `"both"` — which maps that channel cares about
+- **minPP**: (optional) inclusive minimum play PP — post only if `score.pp >= minPP`
+- **maxPP**: (optional) exclusive maximum play PP — post only if `score.pp < maxPP`
 
-`feedMessages` keys can be just the event (`"Top1"`) or event+context (`"Top1MainCountries"`). Specific wins over generic.
+Example: 500pp+ front-page top plays, and below-500 personal #1 top plays, same channel:
+
+```json
+{
+  "Channel": "CHANNEL_ID",
+  "Feeds": ["TopPlayTop8"],
+  "minPP": 500,
+  "Types": "ranked"
+},
+{
+  "Channel": "CHANNEL_ID",
+  "Feeds": ["TopPlayPersonal"],
+  "maxPP": 500,
+  "Types": "ranked"
+}
+```
+
+`feedMessages` keys can be just the event (`"Top1"`) or event+context (`"Top1MainCountries"` / `"TopPlayTop8"`). Specific wins over generic.
+
+TopPlay message lookup (first key that exists wins):
+- **TopPlayTopN** (N = 2–20): `TopPlayTopN` → `TopPlayTop` → `TopPlayPersonal`
+- **TopPlayTop1**: `TopPlayTop1` → `TopPlayPersonal` → `TopPlay`
+- **TopPlayPersonal**: `TopPlayPersonal` → `TopPlay` (does **not** use `TopPlayTop`)
+- **TopPlayAll** / **TopPlayCountry**: exact key → `TopPlay`
+
+`TopPlayTop` is a feedMessages-only key that covers every TopPlayTopN feed; it is not a Feeds subscription string.
 
 ## FeedsEnabled
 
@@ -157,10 +184,12 @@ Object (or array of them) in `maps.feed.feeds`:
 ### Events
 Feed string = `Event` + `Context` stuck together, examples: `Top1MainCountries`, `BetterPlayAll`, `NewMapMainCountries`.
 
-TopPlay is special, its contexts are Personal / Country / All:
-- `TopPlayPersonal`
-- `TopPlayCountry`
-- `TopPlayAll`
+TopPlay is special (main-country users only). Contexts:
+- `TopPlayPersonal` — new lifetime personal best PP play
+- `TopPlayTop1` — same as `TopPlayPersonal`
+- `TopPlayTopN` — N from 2–20; play appears on the player's ScoreSaber top-N page (`sort=top`)
+- `TopPlayCountry` — new #1 top PP play in their country (among tracked users)
+- `TopPlayAll` — new #1 top PP play among all tracked users
 
 | Feed | Type | Meaning |
 |---|---|---|
@@ -170,24 +199,22 @@ TopPlay is special, its contexts are Personal / Country / All:
 | **BetterPlay** | Score | Improved their own score by more than `betterPlayPercentage` |
 | **NewMap** | Score | Nobody in that context had the map yet |
 | **NewPlay** | Score | Map already existed in context, but first time for this user |
-| **TopPlayPersonal** | Score | New personal best pp play |
+| **TopPlayPersonal** / **TopPlayTop1** | Score | New personal best pp play |
+| **TopPlayTopN** | Score | New score is in the player's top N PP plays (ScoreSaber front page for N=8) |
 | **TopPlayCountry** | Score | New #1 top pp play in their country (among tracked users) |
 | **TopPlayAll** | Score | New #1 top pp play among all tracked users |
 
 ### Priority
-Actual order when a play comes in (`runPlay`):
+Unified order for a play (TopPlay first; if any TopPlay posts for that play, map feeds are skipped):
 
+`TopPlayAll > TopPlayCountry > TopPlayPersonal` / `TopPlayTop1 > TopPlayTop2 > … > TopPlayTop20 >`
 `Top1 > BetterTopPlay > Snipe > BetterPlay > NewMap > NewPlay`
 
-TopPlay is handled separately:
+Withing a play, each feed channel entry picks the first matching context (If it's a personal top play, it skips top 1; if it's a top 1 score, it skips a snipe, etc...)
 
-`TopPlayAll > TopPlayCountry > TopPlayPersonal`
-
-Context preference inside one event:
+Context preference inside one map-feed event:
 - Snipe-ish checks (Top1 / BetterTopPlay / Snipe): tries **All** then **MainCountries**
 - Score-ish checks (BetterPlay / NewPlay): tries **MainCountries** then **All**
-
-First match posts and stops for that channel.
 
 ## Map message tags
 
@@ -211,7 +238,7 @@ Anything listed as Player_A also works as Player_B on **Snipe events only** (Top
 - `{Player_A_isFC}` → `FC` or `❌ FC`
 - `{Player_A_misses}` → `FC` / `2 miss` / `❌ FC`
 - `{Player_A_scorePP}`
-- `{Player_A_scoreWeightedPP}` (ranked only; Player_B weighted pp is basically useless unless you re-rank their whole scoreset)
+- `{Player_A_scoreWeightedPP}`
 - `{Player_A_timeSet}` / `{Player_A_timeSince}` discord timestamp formats
 - `{Player_A_timeSetText}` / `{Player_A_timeSinceText}` plain text versions
 - `{Player_A_HMD}`
@@ -220,12 +247,12 @@ Anything listed as Player_A also works as Player_B on **Snipe events only** (Top
 - `{Player_A_averageTop1CountRate_country_rounded}`
 - `{Player_A_averageTop1CountRate_server_ratio_ranked}`
   - shape: `averageTop1CountRate_(server|country)_(number|rounded|ratio)(_ranked)?`
+- `{Player_A_rank}` their scoresaber rank
+- `{Player_A_countryRank}` 
+- `{Player_A_leaderboardRank}` only available on `Player_A` 
 
 ### Old player values
 Same idea with `old` prefix. Uses the previous leaderboard entry for that player.
-
-Note: `Player_B_old...` is allowed by the regex but oldPlayerB is basically just PlayerB, so it doesnt really change anything.
-Maybe later: `oldDatabaseRank`?
 
 - `{Player_A_oldBaseScore}`
 - `{Player_A_oldModifiedScore}`
@@ -333,8 +360,8 @@ Time tags = time of last feed update for that tracked value. For Player its basi
 Also (no `{}` braces in the condition side if used as ifs, but in the message itself they are normal tags):
 
 - `{SnipedUsers}` → `Morphites, olliemine`
-- `{SnipedUsersExceptFirst}`
-- `{Update_block}` asciidoc codeblock table of +/− changes
+- `{SnipedUsersExceptFirst}` → `olliemine`
+- `{UpdateBlock}` asciidoc codeblock table of +/− changes
 
 ### Player buttons / pictures
 - buttons: `scoresaberPlayer`, `scoresaberSniped`
@@ -392,8 +419,6 @@ Configured at `commands.getplayer` (same message/embed sintax as feeds).
 ### averageRankedAccuracy
 - `{averageRankedAccuracy_round}` fully rounded
 - `{averageRankedAccuracy_2}` fixed to N decimals (max 14)
-
-(old notes said `_raw` / `_rounded` — thats wrong now)
 
 ### averageTop1CountRate
 - `{averageTop1CountRate_server_2}`
@@ -471,4 +496,4 @@ The announcement is scheduled with a timer to the next occurrence of that hour r
 - `commands.disabling`: command names to turn off
 - `debug`: 0-4
 
-If something in here disagrees with `schema.json`, trust the schema + the code. This file will drift again eventually.
+If something in here disagrees with `schema.json`, trust the schema + the code. This file will drift again eventually :3

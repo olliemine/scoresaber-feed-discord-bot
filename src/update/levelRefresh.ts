@@ -6,7 +6,7 @@ import { UpdateQuery } from "mongoose"
 import { isObjectEmpty } from "../misc/util.js"
 import userSchema from "../models/userSchema.js"
 import { logger } from "../logger.js"
-import { LevelFeedUpdater } from "../feed/levelFeed.js"
+import { LevelFeedUpdater, playFeedKey } from "../feed/levelFeed.js"
 import { getScore } from "./levelCounts.js"
 import mongodb from "mongodb"
 import { ScoreSaberPlay } from "../classes/scoreSaberPlay.js"
@@ -179,7 +179,7 @@ export async function levelRefresh(dataUser: user, plays: ScoreSaberPlay[]):
 	const levelByID = new Map(existing.map(l => [l.levelID, levelFromLean(l as LeanLevel)]))
 
 	const touchedLevelIDs = new Set<number>()
-	const feedTasks: Array<() => Promise<void>> = []
+	const feedTasks: Array<{ play: ScoreSaberPlay, run: () => Promise<void> }> = []
 
 	for (const play of plays) {
 		let data = levelByID.get(play.levelID)
@@ -191,7 +191,10 @@ export async function levelRefresh(dataUser: user, plays: ScoreSaberPlay[]):
 			debugData.newMaps++
 
 			const levelSnapshot = cloneLevelSnapshot(data)
-			feedTasks.push(() => LevelFeedUpdater.runNewMap(dataUser, levelSnapshot, play))
+			feedTasks.push({
+				play,
+				run: () => LevelFeedUpdater.runNewMap(dataUser, levelSnapshot, play),
+			})
 			continue
 		}
 
@@ -199,7 +202,10 @@ export async function levelRefresh(dataUser: user, plays: ScoreSaberPlay[]):
 		touchedLevelIDs.add(play.levelID)
 
 		const levelSnapshot = cloneLevelSnapshot(data)
-		feedTasks.push(() => LevelFeedUpdater.runPlay(dataUser, levelSnapshot, oldLeaderboard, play))
+		feedTasks.push({
+			play,
+			run: () => LevelFeedUpdater.runPlay(dataUser, levelSnapshot, oldLeaderboard, play),
+		})
 	}
 
 	debugData.getAverage = (Date.now() - loopStart) / plays.length / 1000
@@ -224,21 +230,67 @@ export async function levelRefresh(dataUser: user, plays: ScoreSaberPlay[]):
 
 	if (bulkOps.length) await flushBulkWrites(bulkOps)
 
-	for (const runFeed of feedTasks) {
-		await runFeed()
+	// TopPlay runs first; plays that post a TopPlay skip Top1 / Snipe / NewMap / …
+	const topPlayPosted = await runTopPlayFeeds(dataUser, plays, levelByID)
+
+	for (const task of feedTasks) {
+		if (topPlayPosted.has(playFeedKey(task.play))) continue
+		await task.run()
 	}
 
-	await getDataUserEdits(dataUser, plays, levelByID)
+	await getDataUserEdits(dataUser, plays)
 
 	return {
 		debugData,
 	}
 }
 
-async function getDataUserEdits(
+/** Persist lifetime top play + post TopPlay feeds. Returns keys of plays that posted. */
+async function runTopPlayFeeds(
 	dataUser: user,
 	plays: ScoreSaberPlay[],
 	levelByID: Map<number, level>
+): Promise<Set<string>> {
+	const postedKeys = new Set<string>()
+
+	const userTopPPPlay = dataUser?.scoresaberTopPlay?.pp ?? 0
+	const playsTopPPPlay = plays.slice().sort((a, b) => b.pp - a.pp)[0]
+	const isNewPersonalBest = playsTopPPPlay.pp > userTopPPPlay
+
+	if (isNewPersonalBest) {
+		const topPlay = buildUserMap(playsTopPPPlay)
+		dataUser.scoresaberTopPlay = topPlay
+		// Persist before TopPlay All/Country rank so getRank sees the new PP.
+		await userSchema.updateOne(
+			{ scoresaberID: dataUser.scoresaberID },
+			{ scoresaberTopPlay: topPlay }
+		).catch(logger.error)
+	}
+
+	if (!dataUser.scoresaberLastPP) return postedKeys
+
+	const topScoresCache: { plays?: ScoreSaberPlay[] | null, limit: number } = { limit: 0 }
+
+	for (const play of plays) {
+		const topPlayMap = levelByID.get(play.levelID)
+			?? await levelSchema.findOne({ levelID: play.levelID })
+
+		if (!topPlayMap) continue
+
+		const posted = await LevelFeedUpdater.runTopPlay(dataUser, topPlayMap, play, {
+			isNewPersonalBest: isNewPersonalBest && play.levelID === playsTopPPPlay.levelID && play.pp === playsTopPPPlay.pp,
+			topScoresCache,
+		})
+
+		if (posted) postedKeys.add(playFeedKey(play))
+	}
+
+	return postedKeys
+}
+
+async function getDataUserEdits(
+	dataUser: user,
+	plays: ScoreSaberPlay[]
 ) {
 	const lastmap = getLastMap(plays)
 
@@ -246,21 +298,6 @@ async function getDataUserEdits(
 
 	if (dataUser.scoresaberLastMap === null || lastmap.date.getTime() > dataUser.scoresaberLastMap?.date.getTime())
 		userUpdate.scoresaberLastMap = lastmap
-
-	const userTopPPPlay = dataUser?.scoresaberTopPlay?.pp ?? 0
-
-	const playsTopPPPlay = plays.sort((a, b) => b.pp - a.pp)[0]
-
-	if (playsTopPPPlay.pp > userTopPPPlay) {
-		userUpdate.scoresaberTopPlay = buildUserMap(playsTopPPPlay)
-
-		if (dataUser.scoresaberLastPP) {
-			const topPlayMap = levelByID.get(playsTopPPPlay.levelID)
-				?? await levelSchema.findOne({ levelID: playsTopPPPlay.levelID })
-
-			if (topPlayMap) await LevelFeedUpdater.runTopPlay(dataUser, topPlayMap, playsTopPPPlay)
-		}
-	}
 
 	const newHMDs = getAllHMDs(plays)
 
