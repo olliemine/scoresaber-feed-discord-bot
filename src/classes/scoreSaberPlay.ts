@@ -85,6 +85,9 @@ export class ScoreSaberPlay {
 	@ReadOnlyGet private _bpm?: number
 	declare readonly bpm?: number
 
+	@ReadOnlyGet private _scoreID?: number
+	declare readonly scoreID?: number
+
 	constructor(play: ScoreSaberPlayersScoreData, type: "V2_SCORE")
 	constructor(play: ScoreSaberWebSocketData["commandData"], type: "WEBSOCKET_SCORE")
 	constructor(play: ScoreSaberPlayersScoreData | ScoreSaberWebSocketData["commandData"], type: "V2_SCORE" | "WEBSOCKET_SCORE") {
@@ -96,6 +99,7 @@ export class ScoreSaberPlay {
 			const legacyHmd = v2Play.score.legacyHmdId != null ? HMDs[v2Play.score.legacyHmdId] : undefined
 
 			this._playerID = v2Play.score.player.id
+			this._scoreID = v2Play.score.id
 			this._unmodifiedScore = v2Play.score.unmodifiedScore
 			this._modifiedScore = v2Play.score.modifiedScore
 			this._isFC = v2Play.score.fullCombo
@@ -125,6 +129,7 @@ export class ScoreSaberPlay {
 			const wsPlay = play as ScoreSaberWebSocketData["commandData"]
 
 			this._playerID = wsPlay.score.leaderboardPlayerInfo.id
+			this._scoreID = wsPlay.score.id
 			this._unmodifiedScore = wsPlay.score.baseScore
 			this._modifiedScore = wsPlay.score.modifiedScore
 			this._isFC = wsPlay.score.fullCombo

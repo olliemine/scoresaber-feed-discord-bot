@@ -21,6 +21,7 @@ const leaderboardPlayer = {
 	"playerName": RequiredString,
 	"category": RequiredString,
 	"score": {
+		"scoreID": Number,
 		"baseScore": RequiredNumber,
 		"modifiedScore": RequiredNumber,
 		"modifiers": [String],

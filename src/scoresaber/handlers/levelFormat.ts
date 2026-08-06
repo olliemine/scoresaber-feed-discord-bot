@@ -5,6 +5,7 @@ import { ScoreSaberPlay } from "../../classes/scoreSaberPlay.js"
 
 function getScore(play: ScoreSaberPlay): levelPlayer["score"] {	
 	return {
+		...(play.scoreID != null ? { scoreID: play.scoreID } : {}),
 		"baseScore": play.unmodifiedScore,
 		"modifiedScore": play.modifiedScore,
 		"modifiers": play.modifiers,

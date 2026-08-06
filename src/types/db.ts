@@ -60,6 +60,7 @@ export type levelPlayer = {
 	playerName: string,
 	category: string,
 	score: {
+		scoreID?: number,
 		baseScore: number,
 		modifiedScore: number,
 		modifiers: string[],
