@@ -5,7 +5,7 @@ import getConfig from "../config/getConfig.js"
 const languages = {
 	ES: ES,
 	EN: EN
-}
+} satisfies Record<string, LanguageMessages>
 
 export const localizationToLanguage: {[key: string]: languages} = {
 	"en-US": "EN",
@@ -18,6 +18,8 @@ export const languageToLocalization: {[key in languages]: string} = {
 	"EN": "en-US",
 	"ES": "es-ES"
 }
+
+export type LanguageMessages = Record<keyof typeof EN, string>
 
 export type languageString = keyof typeof EN
 

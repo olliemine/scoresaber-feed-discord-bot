@@ -1,3 +1,5 @@
+import { LanguageMessages } from "./lang.js";
+
 export default {
 	invalidString: "Por favor ingresa un texto válido",
 	invalidUser: "Por favor ingresa un usuario válido",
@@ -35,7 +37,6 @@ export default {
 	rolesError: "No se pueden aplicar/eliminar los siguientes roles",
 
 	linkDescription: "Vinculta tu cuenta de ScoreSaber",
-	loginSuccess: "Se vinculó tu cuenta exitosamente",
 	
 	logoutDescription: "Desvincular tu cuenta",
 	logoutSuccess: "Cuenta desvinculada exitosamente",
@@ -45,7 +46,6 @@ export default {
 	updateSuccess: "Actualizado exitosamente",
 	updateError: "Error al actualizar usuario ",
 	updatePartialSuccess: "Actualizado exitosamente con unas advertencias",
-	updateErrorFooter: "Un error inesperado ha occurido, error anotado en la consola",
 
 	updateDebugUpdate: "actualizado",
 	updateDebugAverageAccuracy: "Average Accuracy actualizado",
@@ -213,4 +213,4 @@ export default {
 	userPlayerUpdateFeedError: "Se pudo actualizar el usuario sin actualizar la feed",
 
 	verificationChannelMessage: "**Pon tu nombre o id de scoresaber para ser verificado\nTambien puedes poner \"visitante\" para entrar sin cuenta**"
-}
+} satisfies LanguageMessages

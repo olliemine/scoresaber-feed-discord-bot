@@ -73,7 +73,6 @@ export default {
 	updateSuccess: "Succesfully refreshed",
 	updateError: "Failed to update",
 	updatePartialSuccess: "Succesfully refreshed with some warnings",
-	updateErrorFooter: "An unexpected error has occured, error logged in console",
 	userPlayerUpdateFeedError: "Could update user without updating feed",
 	
 	/**

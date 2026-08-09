@@ -19,7 +19,7 @@ const command: BotCommand = {
 	.setDescription(getLanguage.getDefault("updateDescription"))
 	.setDescriptionLocalizations(getLanguage.getLocalizations("updateDescription")),
 	async execute(message) {
-		const sentMessage = await new SentMessageHandler(message).localesLoading()
+		const sentMessage = await new SentMessageHandler(message).localesLoading("updatingUser")
 		const dataUser = await getDataUserFromDiscordUser(sentMessage.author)
 	
 		if(!dataUser) return sentMessage.localesError("userYourNotFound")
