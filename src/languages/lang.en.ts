@@ -46,7 +46,7 @@ export default {
 	 */
 	changeNameDescription: "Change your name",
 	changeNameStringOptionDescription: "Your new name",
-	changeNameSuccess: "Changed name to: ",
+	changeNameSuccess: "Changed name to",
 	changeNameError: "It was not possible to change your name",
 
 	/**
@@ -62,7 +62,7 @@ export default {
 	/**
 	 * Logout command
 	 */
-	logoutDescription: "Logout of your account",
+	logoutDescription: "Log out of your account",
 	logoutSuccess: "Successfully logged out",
 
 	/**
@@ -70,11 +70,10 @@ export default {
 	 */
 	updateDescription: "Self refresh",
 	updateNoUpdate: "User is already fully refreshed",
-	updateSuccess: "Succesfully refreshed",
+	updateSuccess: "Successfully refreshed",
 	updateError: "Failed to update",
-	updatePartialSuccess: "Succesfully refreshed with some warnings",
-	updateErrorFooter: "An unexpected error has occured, error logged in console",
-	userPlayerUpdateFeedError: "Could update user without updating feed",
+	updatePartialSuccess: "Successfully refreshed with some warnings",
+	userPlayerUpdateFeedError: "Updated the user without updating the feed",
 	
 	/**
 	 * User update debug
@@ -88,17 +87,17 @@ export default {
 	 * Visitor command
 	 */
 	visitor: "visitor",
-	visitorDescription: "Login as visitor",
+	visitorDescription: "Log in as visitor",
 	visitorSuccess: "Successfully logged in as visitor",
 	visitorUserIsNotVisitor: "You are not a visitor",
 
 	/**
 	 * Login responses
 	 */
-	loginUserAlreadyExists: "User already exists, if you think this shouldn't happen please contact a admin",
+	loginUserAlreadyExists: "User already exists, if you think this shouldn't happen please contact an admin",
 	loginSuccessDescription: "Logged in with ",
 	loginSuccessTitle: "Successfully logged in",
-	loginDeny: "You cannot logout",
+	loginDeny: "You cannot log out",
 
 	/**
 	 * Playlist descriptions
@@ -106,21 +105,21 @@ export default {
 	playlistSnipeDescription: "Generates a playlist where the given player is above you in the map",
 	playlistTop1Description: "Generates a playlist where the given player is top 1 in the map",
 	playlistTop1ServerDescription: "Generates a playlist with maps where you are not top 1",
-	playlistImproveDescription: "Generates a playlist with a sort.",
+	playlistImproveDescription: "Generates a sorted playlist",
 	
 	/**
 	 * Playlist parameters
 	 */
-	playlistPlayerDescription: "The user to generate the playlist",
+	playlistPlayerDescription: "The user to generate the playlist for",
 	playlistLimitDescription: "The limit of maps in the playlist",
 	playlistRankedDescription: "Whether the maps should be ranked",
-	playlistMinNPSDescription: "The minimum of NPS that the maps should have",
-	playlistMaxNPSDescription: "The maximum of NPS that the maps should have",
+	playlistMinNPSDescription: "The minimum NPS that the maps should have",
+	playlistMaxNPSDescription: "The maximum NPS that the maps should have",
 	playlistMinDateDescription: "Minimum date for the maps (YYYY-MM-DD)",
 	playlistMaxDateDescription: "Maximum date for the maps (YYYY-MM-DD)",
-	playlistMinStarsDescription: "The minimum of stars the ranked map should have",
-	playlistMaxStarsDescription: "The maximum of stars the ranked map should have",
-	playlistTagDescription: "Tag that the maps should have",
+	playlistMinStarsDescription: "The minimum stars the ranked map should have",
+	playlistMaxStarsDescription: "The maximum stars the ranked map should have",
+	playlistTagDescription: "The tag that the maps should have",
 	playlistSortLowAcc: "Low acc",
 	playlistSortOldest: "Oldest",
 	playlistSortDescription: "How the playlist is going to be sorted",
@@ -132,8 +131,8 @@ export default {
 	playlistInvalidMinDate: "Invalid minDate, please use the format (YYYY-MM-DD)",
 	playlistInvalidMaxDate: "Invalid maxDate, please use the format (YYYY-MM-DD)",
 	playlistMinNPSNotGreaterThanMaxNPS: "Min NPS shouldn't be higher than max NPS",
-	playlistMinDateNotGreaterThanMaxDate: "Min Date shouldn't be higher than max date",
-	playlistMinStarsNotGreaterThanMaxStars: "Min Stars shouldn't be higher than max stars",
+	playlistMinDateNotGreaterThanMaxDate: "Min date shouldn't be later than max date",
+	playlistMinStarsNotGreaterThanMaxStars: "Min stars shouldn't be higher than max stars",
 	playlistNoMapFound: "No map was found",
 	playlistCreation: "Playlist created",
 	playlistMapsFound: "maps found",
@@ -141,8 +140,8 @@ export default {
 	/**
 	 * User selection 
 	 */
-	userSelectionDescription: "There exists multiple users with the same name, please select the correct one:",
-	userSelectionNotFound: "No user found. Please try searching by ID",
+	userSelectionDescription: "There are multiple users with the same name, please select the correct one:",
+	userSelectionNotFound: "No user found. Please try searching by ID.",
 
 	/**
 	 * Get player command
@@ -189,7 +188,7 @@ export default {
 	rankedleLeaderboardEmpty: "The leaderboard is empty",
 	rankedleInvalidPage: "The page must be between 1 and",
 	rankedleSongError: "A song could not be found, the game has been stopped",
-	rankedleUnexpectedStop: "An unexpected error occured, the game has been stopped",
+	rankedleUnexpectedStop: "An unexpected error occurred, the game has been stopped",
 
 	/**
 	 * Rankedle responses
@@ -250,7 +249,7 @@ export default {
 	rankedleHintTitle: "Hint",
 	rankedleHintAudio: "Extended audio! Listen to a longer clip of the song",
 	rankedleHintUploader: "Mapper hint: the song was uploaded by",
-	rankedleHintDifficulties: "Difficulty hint, the song has the following difficulties",
+	rankedleHintDifficulties: "Difficulty hint: the song has the following difficulties",
 	rankedleHintCover: "Visual hint: here is the cover art (slightly blurred)",
 	rankedleHintCoverFallback: "Visual hint: here is the cover art",
 	rankedleNotRanked: "Not ranked",
@@ -295,5 +294,5 @@ export default {
 	/**
 	 * Misc
 	 */
-	verificationChannelMessage: "**Enter your ScoreSaber name or id to be verified\nYou can also enter \"visitor\" to enter without account**"
+	verificationChannelMessage: "**Enter your ScoreSaber name or ID to be verified\nYou can also enter \"visitor\" to enter without an account**"
 }
