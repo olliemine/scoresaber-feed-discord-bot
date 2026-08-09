@@ -250,7 +250,7 @@
 			"type": "string",
 			"maxLength": 2,
 			"default": "en",
-			"enum": ["en", "es"]
+			"enum": ["en", "es", "de"]
 		},
 		"activity": {
 			"type": "object",
