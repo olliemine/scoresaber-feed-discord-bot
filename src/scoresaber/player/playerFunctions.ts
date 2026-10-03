@@ -73,8 +73,23 @@ export async function getTopPlays(id: string, limit: number) {
 	return playerScores
 }
 
-export function isPlayInTopScores(score: ScoreSaberPlay, topScores: ScoreSaberPlay[]) {
-	return topScores.some(top => top.levelID === score.levelID)
+/**
+ * True when `score` is inside the top `n` plays and is not a replay or refresh
+ * of a map already sitting there at the same or higher PP.
+ * The listed row with this score's own timeSet is this submission, so it still qualifies.
+ */
+export function isPlayInTopScores(score: ScoreSaberPlay, topScores: ScoreSaberPlay[], n = topScores.length) {
+	const window = topScores.slice(0, n)
+	if(!window.length) return false
+
+	const existing = window.find(top => top.levelID === score.levelID)
+	if(!existing) return false
+
+	if(window.length >= n && score.pp < window[n - 1].pp) return false
+
+	if(existing.timeSet.getTime() !== score.timeSet.getTime() && existing.pp >= score.pp) return false
+
+	return true
 }
 
 export { SCORES_PAGE_SIZE }

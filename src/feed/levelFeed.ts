@@ -374,7 +374,7 @@ export class LevelFeedUpdater {
 				if(topScores) {
 					for(const n of topNContexts) {
 						combination = `${LEVEL_FEEDS_ENABLED.events.TopPlay.name}Top${n}`
-						if(isPlayInTopScores(score, topScores.slice(0, n))) {
+						if(isPlayInTopScores(score, topScores, n)) {
 							await handlePostFeed()
 							return
 						}
