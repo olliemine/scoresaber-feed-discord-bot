@@ -11,6 +11,7 @@ import { PromiseOrNot } from "../types/util.js"
 import { ScoreSaberPlay } from "../classes/scoreSaberPlay.js"
 import { includesEvent, resolveFeedChannel } from "./feedCommon.js"
 import { getTopPlays, isPlayInTopScores } from "../scoresaber/player/playerFunctions.js"
+import { buildLeaderboardPlayer } from "../scoresaber/handlers/levelFormat.js"
 
 function getSnipedPlayer(leaderboard: levelPlayer[], oldLeaderboard: levelPlayer[], userLeaderboardIndex: number, userOldLeaderboardIndex: number) {
 	if(!leaderboard[userLeaderboardIndex + 1]) return null
@@ -331,7 +332,9 @@ export class LevelFeedUpdater {
 
 			async function handlePostFeed() {
 				logger.debug("TopPlay Event", DEBUG_LEVELS.VARIABLE_DEBUG)
-				await postLevelFeed(channelConfiguration, combination, score, map, map.leaderboard[0])
+				const player = map.leaderboard.find(p => p.playerID === dataUser.scoresaberID)
+					?? buildLeaderboardPlayer(dataUser, score)
+				await postLevelFeed(channelConfiguration, combination, score, map, player)
 				posted = true
 			}
 
